@@ -15,7 +15,7 @@ body{display:flex;justify-content:center;padding:16px 13px 30px}
 .app{width:min(100%,520px)}
 header{padding:9px 4px 17px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:7px 0 0;color:var(--muted);font-size:13px}
-.header-actions{display:flex;gap:8px;align-items:flex-start}
+.header-actions{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
 .install,.settings-btn{display:none;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:13px;background:#fff;font-weight:700;color:var(--text);cursor:pointer;touch-action:manipulation}
 .settings-btn{display:block;font-size:13px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 8px 30px rgba(17,24,39,.06)}
@@ -23,14 +23,26 @@ h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:
 .input{position:relative}input,select{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
 select{padding-right:15px;font-size:16px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.actions-3{grid-template-columns:1fr 1fr 1fr}
+button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation}
 .primary{background:var(--accent);color:#fff}.secondary{background:#f3f4f6;color:var(--text);border:1px solid var(--line)}
-.error{min-height:19px;margin-top:7px;color:var(--danger);font-size:12px;font-weight:650}.result{margin-top:17px;padding:17px;border-radius:18px;background:var(--soft);border:1px solid var(--line)}
+.camera-btn{background:#f3f4f6;color:var(--text);border:1px solid var(--line);font-size:13px}
+.error{min-height:19px;margin-top:7px;color:var(--danger);font-size:12px;font-weight:650}
+.result{margin-top:17px;padding:17px;border-radius:18px;background:var(--soft);border:1px solid var(--line)}
 .result-title{font-size:12px;color:var(--muted);font-weight:750}.result-row{display:flex;align-items:baseline;gap:8px;margin-top:5px;flex-wrap:wrap}.result-value{font-size:40px;line-height:1.05;font-weight:850;letter-spacing:-1px;overflow-wrap:anywhere}.result-unit{font-size:14px;color:var(--muted);font-weight:650}
 .formula{margin-top:15px;padding:11px;border-radius:12px;background:#f3f4f6;color:#4b5563;text-align:center;font-size:12px}
+.photo-wrap{margin-top:14px;display:none;text-align:center}
+.photo-wrap.show{display:block}
+.photo-wrap img{max-width:100%;max-height:220px;border-radius:14px;border:1px solid var(--line);object-fit:cover}
+.photo-actions{margin-top:8px;display:flex;gap:8px;justify-content:center}
+.photo-actions button{min-height:36px;padding:0 14px;font-size:12px;border-radius:10px}
 .history{margin-top:17px}.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.history h2{font-size:15px;margin:0}.clear{border:0;background:transparent;color:var(--muted);min-height:34px;font-size:12px;padding:5px;cursor:pointer}
-.list{display:grid;gap:7px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:12px}.dims{color:var(--muted)}.val{font-weight:800;white-space:nowrap}
+.list{display:grid;gap:7px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:12px}.item-left{display:flex;align-items:center;gap:8px;min-width:0}.item-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--line);flex-shrink:0}.dims{color:var(--muted)}.val{font-weight:800;white-space:nowrap}
 .status{margin-top:13px;text-align:center;color:#9ca3af;font-size:10px}.footer{text-align:center;color:#9ca3af;font-size:10px;margin-top:12px}
+.update-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#111827;color:#fff;padding:12px 16px;text-align:center;font-size:13px;font-weight:650}
+.update-banner.show{display:block}
+.update-banner button{margin-left:10px;background:#fff;color:#111;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
 /* Settings modal */
 .overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:100;align-items:flex-end;justify-content:center;padding:0}
 .overlay.open{display:flex}
@@ -43,10 +55,22 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
 .modal input,.modal select{height:48px;font-size:16px;padding:0 14px}
 .modal .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
-@media(max-width:360px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}}
+/* Camera modal */
+.cam-overlay{display:none;position:fixed;inset:0;background:#000;z-index:150;flex-direction:column}
+.cam-overlay.open{display:flex}
+.cam-video{flex:1;width:100%;object-fit:cover;background:#111}
+.cam-bar{display:flex;gap:12px;justify-content:center;align-items:center;padding:16px;background:#111}
+.cam-bar button{min-height:48px;min-width:48px;border-radius:50%;border:0;font-weight:700;cursor:pointer}
+.cam-capture{width:64px;height:64px;background:#fff;border:4px solid #6b7280 !important}
+.cam-close{background:#374151;color:#fff;padding:0 18px;border-radius:24px !important;font-size:13px}
+@media(max-width:360px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}.actions-3{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
+<div id="updateBanner" class="update-banner">
+  Có phiên bản mới · <button type="button" id="updateNowBtn">Cập nhật ngay</button>
+</div>
+
 <main class="app">
 <header>
   <div>
@@ -67,8 +91,21 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
   <div class="field"><label for="h">Cao <span>kích thước</span></label><div class="input"><input id="h" type="number" inputmode="decimal" min="0" step="any" placeholder="Nhập chiều cao"><span class="unit" id="unitH">cm</span></div></div>
 </div>
 <div id="error" class="error" role="alert"></div>
-<div class="actions"><button class="primary" type="submit">TÍNH</button><button id="reset" class="secondary" type="button">XÓA</button></div>
+<div class="actions actions-3">
+  <button class="primary" type="submit">TÍNH</button>
+  <button id="reset" class="secondary" type="button">XÓA</button>
+  <button id="cameraBtn" class="camera-btn" type="button">📷 Ảnh</button>
+</div>
 </form>
+
+<div id="photoWrap" class="photo-wrap">
+  <img id="photoPreview" alt="Ảnh đã chụp">
+  <div class="photo-actions">
+    <button id="photoRetake" class="secondary" type="button">Chụp lại</button>
+    <button id="photoClear" class="secondary" type="button">Xóa ảnh</button>
+  </div>
+</div>
+
 <section class="result" aria-live="polite">
   <div class="result-title">KẾT QUẢ</div>
   <div class="result-row">
@@ -84,9 +121,21 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.2 · PWA · Có thể chạy offline</div>
+<div id="status" class="status">V2.3 · PWA · Tự cập nhật khi có mạng</div>
 <div class="footer">Không cần Internet sau khi đã mở/cài app</div>
 </main>
+
+<!-- Hidden file input for camera / gallery fallback -->
+<input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none">
+
+<!-- Live camera overlay -->
+<div id="camOverlay" class="cam-overlay">
+  <video id="camVideo" class="cam-video" playsinline autoplay muted></video>
+  <div class="cam-bar">
+    <button id="camClose" class="cam-close" type="button">Đóng</button>
+    <button id="camCapture" class="cam-capture" type="button" aria-label="Chụp"></button>
+  </div>
+</div>
 
 <!-- Settings Modal -->
 <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -123,6 +172,7 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
 <script>
 (() => {
 "use strict";
+const APP_VERSION = "2.3";
 const $=id=>document.getElementById(id);
 const form=$("form"), l=$("l"), w=$("w"), h=$("h"), result=$("result"), error=$("error"),
       list=$("list"), reset=$("reset"), clear=$("clear"), installBtn=$("installBtn"),
@@ -130,12 +180,19 @@ const form=$("form"), l=$("l"), w=$("w"), h=$("h"), result=$("result"), error=$(
       settingsSave=$("settingsSave"), settingsCancel=$("settingsCancel"),
       setDivisor=$("setDivisor"), setUnitIn=$("setUnitIn"), setUnitOut=$("setUnitOut"), setThreshold=$("setThreshold"),
       subtitle=$("subtitle"), formula=$("formula"), resultUnit=$("resultUnit"),
-      unitL=$("unitL"), unitW=$("unitW"), unitH=$("unitH");
+      unitL=$("unitL"), unitW=$("unitW"), unitH=$("unitH"),
+      cameraBtn=$("cameraBtn"), fileInput=$("fileInput"), photoWrap=$("photoWrap"),
+      photoPreview=$("photoPreview"), photoRetake=$("photoRetake"), photoClear=$("photoClear"),
+      camOverlay=$("camOverlay"), camVideo=$("camVideo"), camCapture=$("camCapture"), camClose=$("camClose"),
+      updateBanner=$("updateBanner"), updateNowBtn=$("updateNowBtn");
 
 const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35 };
 let settings = loadSettings();
 let history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]");
 let deferredPrompt = null;
+let currentPhoto = null; // dataURL nén
+let camStream = null;
+let waitingWorker = null;
 
 function loadSettings() {
   try {
@@ -165,7 +222,6 @@ function applySettingsUI() {
   unitH.textContent = settings.unitIn;
 }
 
-/** Làm tròn theo ngưỡng: phần thập phân < threshold → xuống, ≥ threshold → lên */
 function customRound(n) {
   if (!Number.isFinite(n)) return 0;
   const intPart = Math.floor(n);
@@ -173,19 +229,24 @@ function customRound(n) {
   return frac < settings.threshold ? intPart : intPart + 1;
 }
 
-/** Format số theo locale vi-VN (dùng cho hiển thị kích thước / mức chia) */
 function formatNum(n, maxDigits = 6) {
   if (!Number.isFinite(n)) return "0";
   return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: maxDigits }).format(n);
 }
 
-/** Format kết quả đã làm tròn */
 function fmtResult(n) {
   return formatNum(customRound(n), 0);
 }
 
 function saveHistory() {
-  localStorage.setItem("weightHistoryV2", JSON.stringify(history));
+  // Không lưu ảnh lớn vào localStorage (chỉ giữ metadata + thumbnail nhỏ nếu có)
+  try {
+    localStorage.setItem("weightHistoryV2", JSON.stringify(history));
+  } catch (e) {
+    // Quá dung lượng: bỏ thumbnail cũ
+    history = history.map(x => ({ l: x.l, w: x.w, h: x.h, r: x.r }));
+    try { localStorage.setItem("weightHistoryV2", JSON.stringify(history)); } catch (_) {}
+  }
 }
 
 function render() {
@@ -200,16 +261,115 @@ function render() {
   history.slice(0, 50).forEach(x => {
     const row = document.createElement("div");
     row.className = "item";
+    const left = document.createElement("div");
+    left.className = "item-left";
+    if (x.img) {
+      const thumb = document.createElement("img");
+      thumb.className = "item-thumb";
+      thumb.src = x.img;
+      thumb.alt = "";
+      left.appendChild(thumb);
+    }
     const d = document.createElement("div");
     d.className = "dims";
     d.textContent = `${formatNum(x.l, 2)} × ${formatNum(x.w, 2)} × ${formatNum(x.h, 2)}`;
+    left.appendChild(d);
     const v = document.createElement("div");
     v.className = "val";
     v.textContent = fmtResult(x.r);
-    row.append(d, v);
+    row.append(left, v);
     list.appendChild(row);
   });
 }
+
+function showPhoto(dataUrl) {
+  currentPhoto = dataUrl;
+  photoPreview.src = dataUrl;
+  photoWrap.classList.add("show");
+}
+
+function clearPhoto() {
+  currentPhoto = null;
+  photoPreview.src = "";
+  photoWrap.classList.remove("show");
+}
+
+/** Nén ảnh xuống ~maxW px, quality jpeg */
+function compressImage(fileOrBlob, maxW = 480, quality = 0.65) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(fileOrBlob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Không đọc được ảnh")); };
+    img.src = url;
+  });
+}
+
+function stopCamera() {
+  if (camStream) {
+    camStream.getTracks().forEach(t => t.stop());
+    camStream = null;
+  }
+  camVideo.srcObject = null;
+  camOverlay.classList.remove("open");
+}
+
+async function openLiveCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    fileInput.click();
+    return;
+  }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    camVideo.srcObject = camStream;
+    camOverlay.classList.add("open");
+  } catch (err) {
+    // Quyền bị từ chối hoặc không có camera → fallback file input
+    fileInput.click();
+  }
+}
+
+cameraBtn.addEventListener("click", openLiveCamera);
+photoRetake.addEventListener("click", openLiveCamera);
+photoClear.addEventListener("click", clearPhoto);
+
+camClose.addEventListener("click", stopCamera);
+camCapture.addEventListener("click", async () => {
+  if (!camVideo.videoWidth) return;
+  const canvas = document.createElement("canvas");
+  const maxW = 480;
+  let w = camVideo.videoWidth, h = camVideo.videoHeight;
+  if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+  canvas.width = w; canvas.height = h;
+  canvas.getContext("2d").drawImage(camVideo, 0, 0, w, h);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+  showPhoto(dataUrl);
+  stopCamera();
+});
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files && fileInput.files[0];
+  fileInput.value = "";
+  if (!file) return;
+  try {
+    const dataUrl = await compressImage(file);
+    showPhoto(dataUrl);
+  } catch {
+    error.textContent = "Không thể đọc ảnh.";
+  }
+});
 
 function openSettings() {
   setDivisor.value = settings.divisor;
@@ -218,10 +378,7 @@ function openSettings() {
   setThreshold.value = settings.threshold;
   overlay.classList.add("open");
 }
-
-function closeSettings() {
-  overlay.classList.remove("open");
-}
+function closeSettings() { overlay.classList.remove("open"); }
 
 settingsBtn.addEventListener("click", openSettings);
 modalClose.addEventListener("click", closeSettings);
@@ -230,10 +387,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) closeSettings
 
 settingsSave.addEventListener("click", () => {
   const div = Number(setDivisor.value);
-  if (!Number.isFinite(div) || div <= 0) {
-    alert("Mức chia phải lớn hơn 0.");
-    return;
-  }
+  if (!Number.isFinite(div) || div <= 0) { alert("Mức chia phải lớn hơn 0."); return; }
   const th = Number(setThreshold.value);
   if (!Number.isFinite(th) || th <= 0 || th >= 1) {
     alert("Ngưỡng làm tròn phải lớn hơn 0 và nhỏ hơn 1 (ví dụ 0.35).");
@@ -263,7 +417,9 @@ form.addEventListener("submit", e => {
   }
   const r = a[0] * a[1] * a[2] / settings.divisor;
   result.textContent = fmtResult(r);
-  history.unshift({ l: a[0], w: a[1], h: a[2], r });
+  const entry = { l: a[0], w: a[1], h: a[2], r };
+  if (currentPhoto) entry.img = currentPhoto;
+  history.unshift(entry);
   history = history.slice(0, 50);
   saveHistory();
   render();
@@ -273,6 +429,7 @@ reset.addEventListener("click", () => {
   form.reset();
   error.textContent = "";
   result.textContent = "0";
+  clearPhoto();
   l.focus();
 });
 
@@ -284,10 +441,11 @@ clear.addEventListener("click", () => {
 
 [l, w, h].forEach(x => x.addEventListener("input", () => error.textContent = ""));
 
-// Init
+// Init UI
 applySettingsUI();
 render();
 
+// —— PWA install ——
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
@@ -302,10 +460,65 @@ installBtn.addEventListener("click", async () => {
 });
 window.addEventListener("appinstalled", () => {
   installBtn.style.display = "none";
-  $("status").textContent = "V2.2 · Đã cài như ứng dụng";
+  $("status").textContent = "V" + APP_VERSION + " · Đã cài như ứng dụng";
 });
+
+// —— Auto update Service Worker ——
+function showUpdateBanner(worker) {
+  waitingWorker = worker;
+  updateBanner.classList.add("show");
+}
+
+function applyUpdate() {
+  if (waitingWorker) {
+    waitingWorker.postMessage("SKIP_WAITING");
+  } else {
+    location.reload();
+  }
+}
+
+updateNowBtn.addEventListener("click", applyUpdate);
+
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+    // Đã có worker đang chờ
+    if (reg.waiting) showUpdateBanner(reg.waiting);
+
+    reg.addEventListener("updatefound", () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener("statechange", () => {
+        if (nw.state === "installed" && navigator.serviceWorker.controller) {
+          // Có bản mới (không phải lần cài đầu)
+          showUpdateBanner(nw);
+          // Tự động cập nhật sau 1.5s nếu online
+          if (navigator.onLine) {
+            setTimeout(() => {
+              if (waitingWorker === nw) applyUpdate();
+            }, 1500);
+          }
+        }
+      });
+    });
+
+    // Kiểm tra cập nhật khi online / khi app hiện lại
+    const check = () => { if (navigator.onLine) reg.update().catch(() => {}); };
+    window.addEventListener("online", check);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") check();
+    });
+    // Kiểm tra định kỳ mỗi 30 phút khi online
+    setInterval(check, 30 * 60 * 1000);
+    // Kiểm tra ngay khi load
+    check();
+  }).catch(() => {});
 }
 })();
 </script>
