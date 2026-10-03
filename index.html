@@ -137,7 +137,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.7 · PWA · OCR ổn định</div>
+<div id="status" class="status">V2.8 · PWA · Làm tròn ngưỡng</div>
 <div class="footer">Chạm vào mục lịch sử có ảnh để xem lớn</div>
 </main>
 
@@ -194,7 +194,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -257,10 +257,13 @@ function applySettingsUI() {
 }
 
 function customRound(n) {
-  if (!Number.isFinite(n)) return 0;
-  const intPart = Math.floor(n);
-  const frac = n - intPart;
-  return frac < settings.threshold ? intPart : intPart + 1;
+  if (!Number.isFinite(n) || n < 0) return 0;
+  const x = Math.round(n * 1e9) / 1e9;
+  const intPart = Math.floor(x + 1e-12);
+  const frac = x - intPart;
+  const th = Number(settings.threshold);
+  const threshold = Number.isFinite(th) && th > 0 && th < 1 ? th : 0.35;
+  return frac + 1e-12 < threshold ? intPart : intPart + 1;
 }
 
 function formatNum(n, maxDigits = 6) {
@@ -275,7 +278,8 @@ function fmtResult(n) {
   const v = customRound(n);
   return new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
+    useGrouping: true
   }).format(v);
 }
 
@@ -676,7 +680,8 @@ form.addEventListener("submit", async e => {
     errorEl.textContent = "Kích thước không được nhỏ hơn 0.";
     return;
   }
-  const r = a[0] * a[1] * a[2] / settings.divisor;
+  const rRaw = a[0] * a[1] * a[2] / settings.divisor;
+  const r = customRound(rRaw);
   resultEl.textContent = fmtResult(r);
   lastCalc = { l: a[0], w: a[1], h: a[2], r };
   const entry = { l: a[0], w: a[1], h: a[2], r };
