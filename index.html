@@ -42,9 +42,12 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .clear-hist{border:0;background:transparent;color:var(--muted);min-height:34px;font-size:12px;padding:5px 8px;cursor:pointer;touch-action:manipulation}
 .list{display:grid;gap:7px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:12px;cursor:default}.item.has-img{cursor:pointer}.item.has-img:active{background:#f9fafb}.item-left{display:flex;align-items:center;gap:8px;min-width:0}.item-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--line);flex-shrink:0}.dims{color:var(--muted)}.val{font-weight:800;white-space:nowrap}
 .status{margin-top:13px;text-align:center;color:#9ca3af;font-size:10px}.footer{text-align:center;color:#9ca3af;font-size:10px;margin-top:12px}
-.update-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#111827;color:#fff;padding:12px 16px;text-align:center;font-size:13px;font-weight:650}
-.update-banner.show{display:block}
-.update-banner button{margin-left:10px;background:#fff;color:#111;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+.update-banner,.toast-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;padding:12px 16px;text-align:center;font-size:13px;font-weight:650}
+.update-banner{background:#111827;color:#fff}
+.update-banner.show,.toast-banner.show{display:block}
+.update-banner button,.toast-banner button{margin-left:10px;background:#fff;color:#111;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+.toast-banner{background:#065f46;color:#fff}
+.toast-banner button{background:#fff;color:#065f46}
 .overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:100;align-items:flex-end;justify-content:center;padding:0}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:22px 22px 0 0;width:min(100%,520px);max-height:88vh;overflow-y:auto;padding:22px 19px 28px;box-shadow:0 -8px 40px rgba(17,24,39,.15)}
@@ -75,7 +78,10 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 </head>
 <body>
 <div id="updateBanner" class="update-banner">
-  Có phiên bản mới · <button type="button" id="updateNowBtn">Cập nhật ngay</button>
+  Có phiên bản mới · <button type="button" id="updateNowBtn">Xác nhận cập nhật</button>
+</div>
+<div id="successBanner" class="toast-banner">
+  Cập nhật thành công · <button type="button" id="successCloseBtn">Đóng</button>
 </div>
 
 <main class="app">
@@ -131,7 +137,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.6 · PWA · OCR cải tiến</div>
+<div id="status" class="status">V2.7 · PWA · OCR ổn định</div>
 <div class="footer">Chạm vào mục lịch sử có ảnh để xem lớn</div>
 </main>
 
@@ -184,11 +190,11 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/gh/naptha/tesseract.js@v5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2.6";
+const APP_VERSION = "2.7";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -209,6 +215,7 @@ const ocrStatus = $("ocrStatus"), ocrTextBox = $("ocrTextBox");
 const camOverlay = $("camOverlay"), camVideo = $("camVideo");
 const camCapture = $("camCapture"), camClose = $("camClose");
 const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
+const successBanner = $("successBanner"), successCloseBtn = $("successCloseBtn");
 const imgViewer = $("imgViewer"), viewerImg = $("viewerImg"), viewerInfo = $("viewerInfo"), viewerClose = $("viewerClose");
 
 const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35 };
@@ -475,14 +482,14 @@ function dataURLtoBlob(dataUrl) {
 
 async function ensureOCRWorker() {
   if (tesseractWorker) return tesseractWorker;
-  if (typeof Tesseract === "undefined") throw new Error("OCR chưa sẵn sàng");
-  ocrStatus.textContent = "Đang tải OCR (GitHub)…";
+  if (typeof Tesseract === "undefined") throw new Error("Thiếu thư viện Tesseract");
+  ocrStatus.textContent = "Đang tải OCR…";
   tesseractWorker = await Tesseract.createWorker("vie+eng", 1, {
-    workerPath: "https://cdn.jsdelivr.net/gh/naptha/tesseract.js@v5.1.1/dist/worker.min.js",
-    corePath: "https://cdn.jsdelivr.net/gh/naptha/tesseract.js-core@v5.1.1",
-    langPath: "https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0",
     logger: m => {
-      if (m.status === "recognizing text" && m.progress != null) {
+      if (m.status === "loading tesseract core") ocrStatus.textContent = "Tải core OCR…";
+      else if (m.status === "loading language traineddata") ocrStatus.textContent = "Tải model chữ (" + (m.progress != null ? Math.round(m.progress * 100) + "%" : "…") + ")";
+      else if (m.status === "initializing api") ocrStatus.textContent = "Khởi tạo OCR…";
+      else if (m.status === "recognizing text" && m.progress != null) {
         ocrStatus.textContent = "Đang nhận diện… " + Math.round(m.progress * 100) + "%";
       }
     }
@@ -521,7 +528,8 @@ async function runOCR(dataUrl) {
       ocrStatus.textContent = "Không thấy chữ trên ảnh";
     }
   } catch (err) {
-    ocrStatus.textContent = "OCR lỗi (cần mạng lần đầu tải model)";
+    ocrStatus.textContent = "OCR lỗi: " + (err && err.message ? err.message : "không tải được model");
+    console.error("OCR", err);
     ocrText = "";
   } finally {
     ocrBusy = false;
@@ -732,11 +740,30 @@ function showUpdateBanner(worker) {
   waitingWorker = worker;
   updateBanner.classList.add("show");
 }
+
 function applyUpdate() {
+  sessionStorage.setItem("pwaJustUpdated", APP_VERSION);
   if (waitingWorker) waitingWorker.postMessage("SKIP_WAITING");
   else location.reload();
 }
-updateNowBtn.addEventListener("click", applyUpdate);
+
+updateNowBtn.addEventListener("click", e => {
+  e.preventDefault();
+  updateNowBtn.textContent = "Đang cập nhật…";
+  updateNowBtn.disabled = true;
+  applyUpdate();
+});
+
+successCloseBtn.addEventListener("click", e => {
+  e.preventDefault();
+  successBanner.classList.remove("show");
+});
+
+// Hiện thông báo thành công sau khi reload
+if (sessionStorage.getItem("pwaJustUpdated")) {
+  sessionStorage.removeItem("pwaJustUpdated");
+  successBanner.classList.add("show");
+}
 
 if ("serviceWorker" in navigator) {
   let refreshing = false;
@@ -753,7 +780,6 @@ if ("serviceWorker" in navigator) {
       nw.addEventListener("statechange", () => {
         if (nw.state === "installed" && navigator.serviceWorker.controller) {
           showUpdateBanner(nw);
-          if (navigator.onLine) setTimeout(() => { if (waitingWorker === nw) applyUpdate(); }, 1500);
         }
       });
     });
@@ -766,6 +792,7 @@ if ("serviceWorker" in navigator) {
     check();
   }).catch(() => {});
 }
+
 })();
 </script>
 </body>
