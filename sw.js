@@ -1,4 +1,4 @@
-const CACHE = "khoiluong-v2.3";
+const CACHE = "khoiluong-v2.4";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
@@ -29,7 +29,6 @@ self.addEventListener("fetch", e => {
     url.pathname.endsWith("/") ||
     url.pathname.endsWith("/sw.js");
 
-  // HTML & SW: network-first (cập nhật khi có mạng)
   if (isNav || url.pathname.endsWith("sw.js")) {
     e.respondWith(
       fetch(e.request)
@@ -45,7 +44,6 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Tài nguyên khác: cache-first, fallback network
   e.respondWith(
     caches.match(e.request).then(cached =>
       cached || fetch(e.request).then(r => {

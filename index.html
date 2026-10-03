@@ -23,9 +23,8 @@ h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:
 .input{position:relative}input,select{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
 select{padding-right:15px;font-size:16px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
-.actions-3{grid-template-columns:1fr 1fr 1fr}
-button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}
+button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .primary{background:var(--accent);color:#fff}.secondary{background:#f3f4f6;color:var(--text);border:1px solid var(--line)}
 .camera-btn{background:#f3f4f6;color:var(--text);border:1px solid var(--line);font-size:13px}
 .error{min-height:19px;margin-top:7px;color:var(--danger);font-size:12px;font-weight:650}
@@ -34,16 +33,17 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .formula{margin-top:15px;padding:11px;border-radius:12px;background:#f3f4f6;color:#4b5563;text-align:center;font-size:12px}
 .photo-wrap{margin-top:14px;display:none;text-align:center}
 .photo-wrap.show{display:block}
-.photo-wrap img{max-width:100%;max-height:220px;border-radius:14px;border:1px solid var(--line);object-fit:cover}
-.photo-actions{margin-top:8px;display:flex;gap:8px;justify-content:center}
-.photo-actions button{min-height:36px;padding:0 14px;font-size:12px;border-radius:10px}
-.history{margin-top:17px}.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.history h2{font-size:15px;margin:0}.clear{border:0;background:transparent;color:var(--muted);min-height:34px;font-size:12px;padding:5px;cursor:pointer}
+.photo-wrap img{max-width:100%;max-height:320px;border-radius:14px;border:1px solid var(--line);object-fit:contain;background:#111}
+.photo-actions{margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.photo-actions button{min-height:40px;padding:0 14px;font-size:12px;border-radius:10px}
+.share-btn{background:#0068ff;color:#fff;border:0}
+.history{margin-top:17px}.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.history h2{font-size:15px;margin:0}
+.clear-hist{border:0;background:transparent;color:var(--muted);min-height:34px;font-size:12px;padding:5px 8px;cursor:pointer;touch-action:manipulation}
 .list{display:grid;gap:7px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:12px}.item-left{display:flex;align-items:center;gap:8px;min-width:0}.item-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--line);flex-shrink:0}.dims{color:var(--muted)}.val{font-weight:800;white-space:nowrap}
 .status{margin-top:13px;text-align:center;color:#9ca3af;font-size:10px}.footer{text-align:center;color:#9ca3af;font-size:10px;margin-top:12px}
 .update-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#111827;color:#fff;padding:12px 16px;text-align:center;font-size:13px;font-weight:650}
 .update-banner.show{display:block}
 .update-banner button{margin-left:10px;background:#fff;color:#111;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
-/* Settings modal */
 .overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:100;align-items:flex-end;justify-content:center;padding:0}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:22px 22px 0 0;width:min(100%,520px);max-height:88vh;overflow-y:auto;padding:22px 19px 28px;box-shadow:0 -8px 40px rgba(17,24,39,.15)}
@@ -55,7 +55,6 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .modal input,.modal select{height:48px;font-size:16px;padding:0 14px}
 .modal .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
-/* Camera modal */
 .cam-overlay{display:none;position:fixed;inset:0;background:#000;z-index:150;flex-direction:column}
 .cam-overlay.open{display:flex}
 .cam-video{flex:1;width:100%;object-fit:cover;background:#111}
@@ -63,7 +62,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .cam-bar button{min-height:48px;min-width:48px;border-radius:50%;border:0;font-weight:700;cursor:pointer}
 .cam-capture{width:64px;height:64px;background:#fff;border:4px solid #6b7280 !important}
 .cam-close{background:#374151;color:#fff;padding:0 18px;border-radius:24px !important;font-size:13px}
-@media(max-width:360px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}.actions-3{grid-template-columns:1fr 1fr}}
+@media(max-width:380px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}.actions{grid-template-columns:1fr 1fr}.actions .camera-btn{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -91,9 +90,9 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   <div class="field"><label for="h">Cao <span>kích thước</span></label><div class="input"><input id="h" type="number" inputmode="decimal" min="0" step="any" placeholder="Nhập chiều cao"><span class="unit" id="unitH">cm</span></div></div>
 </div>
 <div id="error" class="error" role="alert"></div>
-<div class="actions actions-3">
-  <button class="primary" type="submit">TÍNH</button>
-  <button id="reset" class="secondary" type="button">XÓA</button>
+<div class="actions">
+  <button class="primary" type="submit" id="calcBtn">TÍNH</button>
+  <button id="resetBtn" class="secondary" type="button">XÓA</button>
   <button id="cameraBtn" class="camera-btn" type="button">📷 Ảnh</button>
 </div>
 </form>
@@ -103,6 +102,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   <div class="photo-actions">
     <button id="photoRetake" class="secondary" type="button">Chụp lại</button>
     <button id="photoClear" class="secondary" type="button">Xóa ảnh</button>
+    <button id="shareBtn" class="share-btn" type="button" style="display:none">Chia sẻ Zalo</button>
   </div>
 </div>
 
@@ -117,18 +117,16 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 </section>
 
 <section class="history">
-<div class="history-head"><h2>Lịch sử</h2><button id="clear" class="clear" type="button">Xóa lịch sử</button></div>
+<div class="history-head"><h2>Lịch sử</h2><button id="clearHistBtn" class="clear-hist" type="button">Xóa lịch sử</button></div>
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.3 · PWA · Tự cập nhật khi có mạng</div>
+<div id="status" class="status">V2.4 · PWA · Tự cập nhật khi có mạng</div>
 <div class="footer">Không cần Internet sau khi đã mở/cài app</div>
 </main>
 
-<!-- Hidden file input for camera / gallery fallback -->
 <input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none">
 
-<!-- Live camera overlay -->
 <div id="camOverlay" class="cam-overlay">
   <video id="camVideo" class="cam-video" playsinline autoplay muted></video>
   <div class="cam-bar">
@@ -137,7 +135,6 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   </div>
 </div>
 
-<!-- Settings Modal -->
 <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal">
     <div class="modal-head">
@@ -172,25 +169,35 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2.3";
-const $=id=>document.getElementById(id);
-const form=$("form"), l=$("l"), w=$("w"), h=$("h"), result=$("result"), error=$("error"),
-      list=$("list"), reset=$("reset"), clear=$("clear"), installBtn=$("installBtn"),
-      settingsBtn=$("settingsBtn"), overlay=$("overlay"), modalClose=$("modalClose"),
-      settingsSave=$("settingsSave"), settingsCancel=$("settingsCancel"),
-      setDivisor=$("setDivisor"), setUnitIn=$("setUnitIn"), setUnitOut=$("setUnitOut"), setThreshold=$("setThreshold"),
-      subtitle=$("subtitle"), formula=$("formula"), resultUnit=$("resultUnit"),
-      unitL=$("unitL"), unitW=$("unitW"), unitH=$("unitH"),
-      cameraBtn=$("cameraBtn"), fileInput=$("fileInput"), photoWrap=$("photoWrap"),
-      photoPreview=$("photoPreview"), photoRetake=$("photoRetake"), photoClear=$("photoClear"),
-      camOverlay=$("camOverlay"), camVideo=$("camVideo"), camCapture=$("camCapture"), camClose=$("camClose"),
-      updateBanner=$("updateBanner"), updateNowBtn=$("updateNowBtn");
+const APP_VERSION = "2.4";
+const $ = id => document.getElementById(id);
+
+const form = $("form");
+const l = $("l"), w = $("w"), h = $("h");
+const resultEl = $("result"), errorEl = $("error"), list = $("list");
+const resetBtn = $("resetBtn"), clearHistBtn = $("clearHistBtn");
+const installBtn = $("installBtn"), settingsBtn = $("settingsBtn");
+const overlay = $("overlay"), modalClose = $("modalClose");
+const settingsSave = $("settingsSave"), settingsCancel = $("settingsCancel");
+const setDivisor = $("setDivisor"), setUnitIn = $("setUnitIn");
+const setUnitOut = $("setUnitOut"), setThreshold = $("setThreshold");
+const subtitle = $("subtitle"), formula = $("formula"), resultUnit = $("resultUnit");
+const unitL = $("unitL"), unitW = $("unitW"), unitH = $("unitH");
+const cameraBtn = $("cameraBtn"), fileInput = $("fileInput");
+const photoWrap = $("photoWrap"), photoPreview = $("photoPreview");
+const photoRetake = $("photoRetake"), photoClear = $("photoClear"), shareBtn = $("shareBtn");
+const camOverlay = $("camOverlay"), camVideo = $("camVideo");
+const camCapture = $("camCapture"), camClose = $("camClose");
+const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
 
 const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35 };
 let settings = loadSettings();
-let history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]");
+let history = [];
+try { history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]"); } catch (_) { history = []; }
 let deferredPrompt = null;
-let currentPhoto = null; // dataURL nén
+let currentPhoto = null;      // ảnh gốc (đã nén)
+let resultPhoto = null;       // ảnh đã ghi kết quả lên
+let lastCalc = null;          // {l,w,h,r, text}
 let camStream = null;
 let waitingWorker = null;
 
@@ -239,11 +246,9 @@ function fmtResult(n) {
 }
 
 function saveHistory() {
-  // Không lưu ảnh lớn vào localStorage (chỉ giữ metadata + thumbnail nhỏ nếu có)
   try {
     localStorage.setItem("weightHistoryV2", JSON.stringify(history));
   } catch (e) {
-    // Quá dung lượng: bỏ thumbnail cũ
     history = history.map(x => ({ l: x.l, w: x.w, h: x.h, r: x.r }));
     try { localStorage.setItem("weightHistoryV2", JSON.stringify(history)); } catch (_) {}
   }
@@ -276,42 +281,146 @@ function render() {
     left.appendChild(d);
     const v = document.createElement("div");
     v.className = "val";
-    v.textContent = fmtResult(x.r);
+    v.textContent = fmtResult(x.r) + " " + settings.unitOut;
     row.append(left, v);
     list.appendChild(row);
   });
 }
 
-function showPhoto(dataUrl) {
-  currentPhoto = dataUrl;
+function showPhoto(dataUrl, isResult) {
+  if (isResult) resultPhoto = dataUrl;
+  else { currentPhoto = dataUrl; resultPhoto = null; }
   photoPreview.src = dataUrl;
   photoWrap.classList.add("show");
+  shareBtn.style.display = isResult ? "inline-block" : "none";
 }
 
-function clearPhoto() {
+function clearPhotoUI() {
   currentPhoto = null;
+  resultPhoto = null;
+  lastCalc = null;
   photoPreview.src = "";
   photoWrap.classList.remove("show");
+  shareBtn.style.display = "none";
 }
 
-/** Nén ảnh xuống ~maxW px, quality jpeg */
-function compressImage(fileOrBlob, maxW = 480, quality = 0.65) {
+function compressImage(fileOrBlob, maxW = 720, quality = 0.72) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(fileOrBlob);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      let w = img.width, h = img.height;
-      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      let ww = img.width, hh = img.height;
+      if (ww > maxW) { hh = Math.round(hh * maxW / ww); ww = maxW; }
       const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
+      canvas.width = ww; canvas.height = hh;
+      canvas.getContext("2d").drawImage(img, 0, 0, ww, hh);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Không đọc được ảnh")); };
     img.src = url;
   });
+}
+
+/** Vẽ kết quả lên ảnh */
+function drawResultOnPhoto(photoDataUrl, calc) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const maxW = 1080;
+      let ww = img.width, hh = img.height;
+      if (ww > maxW) { hh = Math.round(hh * maxW / ww); ww = maxW; }
+      canvas.width = ww;
+      canvas.height = hh;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, ww, hh);
+
+      // Thanh thông tin phía dưới
+      const barH = Math.max(90, Math.round(hh * 0.18));
+      const pad = Math.round(ww * 0.04);
+      ctx.fillStyle = "rgba(17,24,39,0.78)";
+      ctx.fillRect(0, hh - barH, ww, barH);
+
+      // Kết quả lớn
+      const resultText = fmtResult(calc.r) + " " + settings.unitOut;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${Math.round(barH * 0.38)}px system-ui,sans-serif`;
+      ctx.textBaseline = "top";
+      ctx.fillText(resultText, pad, hh - barH + Math.round(barH * 0.12));
+
+      // Kích thước
+      const dimText = `${formatNum(calc.l, 1)} × ${formatNum(calc.w, 1)} × ${formatNum(calc.h, 1)} ${settings.unitIn}`;
+      ctx.font = `${Math.round(barH * 0.2)}px system-ui,sans-serif`;
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.fillText(dimText, pad, hh - barH + Math.round(barH * 0.58));
+
+      // Badge góc trên
+      const badge = "Tính khối lượng";
+      ctx.font = `bold ${Math.round(ww * 0.035)}px system-ui,sans-serif`;
+      const tw = ctx.measureText(badge).width;
+      const bh = Math.round(ww * 0.055);
+      const bx = pad;
+      const by = pad;
+      ctx.fillStyle = "rgba(17,24,39,0.7)";
+      roundRect(ctx, bx - 6, by - 4, tw + 16, bh, 8);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.textBaseline = "middle";
+      ctx.fillText(badge, bx + 2, by + bh / 2 - 2);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => reject(new Error("Không vẽ được ảnh"));
+    img.src = photoDataUrl;
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function dataURLtoBlob(dataUrl) {
+  const parts = dataUrl.split(",");
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bin = atob(parts[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+async function shareToZalo() {
+  const imgData = resultPhoto || currentPhoto;
+  if (!imgData) return;
+
+  const blob = dataURLtoBlob(imgData);
+  const file = new File([blob], "khoi-luong.jpg", { type: "image/jpeg" });
+  const text = lastCalc
+    ? `Khối lượng: ${fmtResult(lastCalc.r)} ${settings.unitOut}\n${formatNum(lastCalc.l, 1)} × ${formatNum(lastCalc.w, 1)} × ${formatNum(lastCalc.h, 1)} ${settings.unitIn}`
+    : "Kết quả tính khối lượng";
+
+  // Web Share API — trên điện thoại sẽ hiện Zalo trong danh sách chia sẻ
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: "Tính khối lượng", text });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+
+  // Fallback: tải ảnh xuống để người dùng gửi vào Zalo
+  const a = document.createElement("a");
+  a.href = imgData;
+  a.download = "khoi-luong.jpg";
+  a.click();
+  alert("Đã tải ảnh. Mở Zalo → chọn ảnh vừa tải để gửi.");
 }
 
 function stopCamera() {
@@ -335,27 +444,28 @@ async function openLiveCamera() {
     });
     camVideo.srcObject = camStream;
     camOverlay.classList.add("open");
-  } catch (err) {
-    // Quyền bị từ chối hoặc không có camera → fallback file input
+  } catch {
     fileInput.click();
   }
 }
 
-cameraBtn.addEventListener("click", openLiveCamera);
-photoRetake.addEventListener("click", openLiveCamera);
-photoClear.addEventListener("click", clearPhoto);
+// —— Events ——
+cameraBtn.addEventListener("click", e => { e.preventDefault(); openLiveCamera(); });
+photoRetake.addEventListener("click", e => { e.preventDefault(); openLiveCamera(); });
+photoClear.addEventListener("click", e => { e.preventDefault(); clearPhotoUI(); });
+shareBtn.addEventListener("click", e => { e.preventDefault(); shareToZalo(); });
 
-camClose.addEventListener("click", stopCamera);
-camCapture.addEventListener("click", async () => {
+camClose.addEventListener("click", e => { e.preventDefault(); stopCamera(); });
+camCapture.addEventListener("click", async e => {
+  e.preventDefault();
   if (!camVideo.videoWidth) return;
   const canvas = document.createElement("canvas");
-  const maxW = 480;
-  let w = camVideo.videoWidth, h = camVideo.videoHeight;
-  if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-  canvas.width = w; canvas.height = h;
-  canvas.getContext("2d").drawImage(camVideo, 0, 0, w, h);
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.65);
-  showPhoto(dataUrl);
+  const maxW = 720;
+  let ww = camVideo.videoWidth, hh = camVideo.videoHeight;
+  if (ww > maxW) { hh = Math.round(hh * maxW / ww); ww = maxW; }
+  canvas.width = ww; canvas.height = hh;
+  canvas.getContext("2d").drawImage(camVideo, 0, 0, ww, hh);
+  showPhoto(canvas.toDataURL("image/jpeg", 0.72), false);
   stopCamera();
 });
 
@@ -364,10 +474,9 @@ fileInput.addEventListener("change", async () => {
   fileInput.value = "";
   if (!file) return;
   try {
-    const dataUrl = await compressImage(file);
-    showPhoto(dataUrl);
+    showPhoto(await compressImage(file), false);
   } catch {
-    error.textContent = "Không thể đọc ảnh.";
+    errorEl.textContent = "Không thể đọc ảnh.";
   }
 });
 
@@ -380,12 +489,13 @@ function openSettings() {
 }
 function closeSettings() { overlay.classList.remove("open"); }
 
-settingsBtn.addEventListener("click", openSettings);
-modalClose.addEventListener("click", closeSettings);
-settingsCancel.addEventListener("click", closeSettings);
+settingsBtn.addEventListener("click", e => { e.preventDefault(); openSettings(); });
+modalClose.addEventListener("click", e => { e.preventDefault(); closeSettings(); });
+settingsCancel.addEventListener("click", e => { e.preventDefault(); closeSettings(); });
 overlay.addEventListener("click", e => { if (e.target === overlay) closeSettings(); });
 
-settingsSave.addEventListener("click", () => {
+settingsSave.addEventListener("click", e => {
+  e.preventDefault();
   const div = Number(setDivisor.value);
   if (!Number.isFinite(div) || div <= 0) { alert("Mức chia phải lớn hơn 0."); return; }
   const th = Number(setThreshold.value);
@@ -403,55 +513,81 @@ settingsSave.addEventListener("click", () => {
   closeSettings();
 });
 
-form.addEventListener("submit", e => {
+// TÍNH
+form.addEventListener("submit", async e => {
   e.preventDefault();
-  error.textContent = "";
+  errorEl.textContent = "";
   const a = [l, w, h].map(x => Number(x.value));
   if (a.some(x => !Number.isFinite(x))) {
-    error.textContent = "Vui lòng nhập đầy đủ 3 kích thước.";
+    errorEl.textContent = "Vui lòng nhập đầy đủ 3 kích thước.";
     return;
   }
   if (a.some(x => x < 0)) {
-    error.textContent = "Kích thước không được nhỏ hơn 0.";
+    errorEl.textContent = "Kích thước không được nhỏ hơn 0.";
     return;
   }
   const r = a[0] * a[1] * a[2] / settings.divisor;
-  result.textContent = fmtResult(r);
+  resultEl.textContent = fmtResult(r);
+  lastCalc = { l: a[0], w: a[1], h: a[2], r };
+
   const entry = { l: a[0], w: a[1], h: a[2], r };
-  if (currentPhoto) entry.img = currentPhoto;
+
+  // Nếu có ảnh → vẽ kết quả lên ảnh
+  if (currentPhoto) {
+    try {
+      const withResult = await drawResultOnPhoto(currentPhoto, lastCalc);
+      showPhoto(withResult, true);
+      entry.img = withResult;
+    } catch {
+      entry.img = currentPhoto;
+      shareBtn.style.display = "inline-block";
+    }
+  }
+
   history.unshift(entry);
   history = history.slice(0, 50);
   saveHistory();
   render();
 });
 
-reset.addEventListener("click", () => {
+// XÓA — reset form + ảnh + kết quả
+resetBtn.addEventListener("click", e => {
+  e.preventDefault();
+  e.stopPropagation();
   form.reset();
-  error.textContent = "";
-  result.textContent = "0";
-  clearPhoto();
-  l.focus();
+  l.value = "";
+  w.value = "";
+  h.value = "";
+  errorEl.textContent = "";
+  resultEl.textContent = "0";
+  clearPhotoUI();
+  try { l.focus(); } catch (_) {}
 });
 
-clear.addEventListener("click", () => {
+// Xóa lịch sử
+clearHistBtn.addEventListener("click", e => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!history.length) return;
+  if (!confirm("Xóa toàn bộ lịch sử?")) return;
   history = [];
   saveHistory();
   render();
 });
 
-[l, w, h].forEach(x => x.addEventListener("input", () => error.textContent = ""));
+[l, w, h].forEach(x => x.addEventListener("input", () => { errorEl.textContent = ""; }));
 
-// Init UI
 applySettingsUI();
 render();
 
-// —— PWA install ——
+// PWA install
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
   installBtn.style.display = "block";
 });
-installBtn.addEventListener("click", async () => {
+installBtn.addEventListener("click", async e => {
+  e.preventDefault();
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   await deferredPrompt.userChoice;
@@ -463,20 +599,15 @@ window.addEventListener("appinstalled", () => {
   $("status").textContent = "V" + APP_VERSION + " · Đã cài như ứng dụng";
 });
 
-// —— Auto update Service Worker ——
+// Auto update SW
 function showUpdateBanner(worker) {
   waitingWorker = worker;
   updateBanner.classList.add("show");
 }
-
 function applyUpdate() {
-  if (waitingWorker) {
-    waitingWorker.postMessage("SKIP_WAITING");
-  } else {
-    location.reload();
-  }
+  if (waitingWorker) waitingWorker.postMessage("SKIP_WAITING");
+  else location.reload();
 }
-
 updateNowBtn.addEventListener("click", applyUpdate);
 
 if ("serviceWorker" in navigator) {
@@ -486,37 +617,24 @@ if ("serviceWorker" in navigator) {
     refreshing = true;
     location.reload();
   });
-
   navigator.serviceWorker.register("./sw.js").then(reg => {
-    // Đã có worker đang chờ
     if (reg.waiting) showUpdateBanner(reg.waiting);
-
     reg.addEventListener("updatefound", () => {
       const nw = reg.installing;
       if (!nw) return;
       nw.addEventListener("statechange", () => {
         if (nw.state === "installed" && navigator.serviceWorker.controller) {
-          // Có bản mới (không phải lần cài đầu)
           showUpdateBanner(nw);
-          // Tự động cập nhật sau 1.5s nếu online
-          if (navigator.onLine) {
-            setTimeout(() => {
-              if (waitingWorker === nw) applyUpdate();
-            }, 1500);
-          }
+          if (navigator.onLine) setTimeout(() => { if (waitingWorker === nw) applyUpdate(); }, 1500);
         }
       });
     });
-
-    // Kiểm tra cập nhật khi online / khi app hiện lại
     const check = () => { if (navigator.onLine) reg.update().catch(() => {}); };
     window.addEventListener("online", check);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") check();
     });
-    // Kiểm tra định kỳ mỗi 30 phút khi online
     setInterval(check, 30 * 60 * 1000);
-    // Kiểm tra ngay khi load
     check();
   }).catch(() => {});
 }
