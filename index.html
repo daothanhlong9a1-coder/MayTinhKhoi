@@ -41,7 +41,7 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
 .modal .field{margin-bottom:14px}
 .modal .field label{margin-bottom:6px}
 .modal input,.modal select{height:48px;font-size:16px;padding:0 14px}
-.modal .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.modal .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
 @media(max-width:360px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}}
 </style>
@@ -73,7 +73,7 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
   <div class="result-title">KẾT QUẢ</div>
   <div class="result-row">
     <div id="result" class="result-value">0</div>
-    <div class="result-unit" id="resultUnit">đơn vị</div>
+    <div class="result-unit" id="resultUnit">kg</div>
   </div>
   <div class="formula" id="formula">Dài × Rộng × Cao ÷ 6</div>
 </section>
@@ -84,7 +84,7 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.1 · PWA · Có thể chạy offline</div>
+<div id="status" class="status">V2.2 · PWA · Có thể chạy offline</div>
 <div class="footer">Không cần Internet sau khi đã mở/cài app</div>
 </main>
 
@@ -106,18 +106,12 @@ input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,
     </div>
     <div class="field">
       <label for="setUnitOut">Đơn vị kết quả</label>
-      <input id="setUnitOut" type="text" maxlength="20" value="đơn vị" placeholder="kg, m³, đơn vị…">
+      <input id="setUnitOut" type="text" maxlength="20" value="kg" placeholder="kg, m³…">
     </div>
     <div class="field">
-      <label for="setRound">Làm tròn kết quả</label>
-      <select id="setRound">
-        <option value="-1">Không làm tròn (tối đa 6 chữ số)</option>
-        <option value="0">Làm tròn đến số nguyên</option>
-        <option value="1">1 chữ số thập phân</option>
-        <option value="2" selected>2 chữ số thập phân</option>
-        <option value="3">3 chữ số thập phân</option>
-        <option value="4">4 chữ số thập phân</option>
-      </select>
+      <label for="setThreshold">Ngưỡng làm tròn</label>
+      <input id="setThreshold" type="number" inputmode="decimal" min="0.01" max="0.99" step="0.01" value="0.35">
+      <div class="hint">Phần thập phân &lt; ngưỡng → làm tròn xuống<br>Phần thập phân ≥ ngưỡng → làm tròn lên<br>Ví dụ 0.35: 10.34 → 10 · 10.35 → 11</div>
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="primary" type="button">Lưu</button>
@@ -134,11 +128,11 @@ const form=$("form"), l=$("l"), w=$("w"), h=$("h"), result=$("result"), error=$(
       list=$("list"), reset=$("reset"), clear=$("clear"), installBtn=$("installBtn"),
       settingsBtn=$("settingsBtn"), overlay=$("overlay"), modalClose=$("modalClose"),
       settingsSave=$("settingsSave"), settingsCancel=$("settingsCancel"),
-      setDivisor=$("setDivisor"), setUnitIn=$("setUnitIn"), setUnitOut=$("setUnitOut"), setRound=$("setRound"),
+      setDivisor=$("setDivisor"), setUnitIn=$("setUnitIn"), setUnitOut=$("setUnitOut"), setThreshold=$("setThreshold"),
       subtitle=$("subtitle"), formula=$("formula"), resultUnit=$("resultUnit"),
       unitL=$("unitL"), unitW=$("unitW"), unitH=$("unitH");
 
-const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "đơn vị", round: 2 };
+const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35 };
 let settings = loadSettings();
 let history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]");
 let deferredPrompt = null;
@@ -146,11 +140,12 @@ let deferredPrompt = null;
 function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem("weightSettingsV2") || "{}");
+    const th = +s.threshold;
     return {
       divisor: Number.isFinite(+s.divisor) && +s.divisor > 0 ? +s.divisor : DEFAULTS.divisor,
       unitIn: (s.unitIn || DEFAULTS.unitIn).toString().slice(0, 12),
       unitOut: (s.unitOut || DEFAULTS.unitOut).toString().slice(0, 20),
-      round: Number.isInteger(+s.round) && +s.round >= -1 && +s.round <= 4 ? +s.round : DEFAULTS.round
+      threshold: Number.isFinite(th) && th > 0 && th < 1 ? th : DEFAULTS.threshold
     };
   } catch { return { ...DEFAULTS }; }
 }
@@ -161,7 +156,7 @@ function saveSettings() {
 
 function applySettingsUI() {
   const d = settings.divisor;
-  const formulaText = `Dài × Rộng × Cao ÷ ${fmt(d)}`;
+  const formulaText = `Dài × Rộng × Cao ÷ ${formatNum(d)}`;
   subtitle.textContent = formulaText;
   formula.textContent = formulaText;
   resultUnit.textContent = settings.unitOut;
@@ -170,17 +165,23 @@ function applySettingsUI() {
   unitH.textContent = settings.unitIn;
 }
 
-function fmt(n, forceRound) {
+/** Làm tròn theo ngưỡng: phần thập phân < threshold → xuống, ≥ threshold → lên */
+function customRound(n) {
+  if (!Number.isFinite(n)) return 0;
+  const intPart = Math.floor(n);
+  const frac = n - intPart;
+  return frac < settings.threshold ? intPart : intPart + 1;
+}
+
+/** Format số theo locale vi-VN (dùng cho hiển thị kích thước / mức chia) */
+function formatNum(n, maxDigits = 6) {
   if (!Number.isFinite(n)) return "0";
-  const digits = forceRound !== undefined ? forceRound : settings.round;
-  if (digits === -1) {
-    // Không làm tròn cứng, tối đa 6 chữ số thập phân, bỏ số 0 thừa
-    return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 6 }).format(n);
-  }
-  return new Intl.NumberFormat("vi-VN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: digits
-  }).format(n);
+  return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: maxDigits }).format(n);
+}
+
+/** Format kết quả đã làm tròn */
+function fmtResult(n) {
+  return formatNum(customRound(n), 0);
 }
 
 function saveHistory() {
@@ -201,10 +202,10 @@ function render() {
     row.className = "item";
     const d = document.createElement("div");
     d.className = "dims";
-    d.textContent = `${fmt(x.l, 2)} × ${fmt(x.w, 2)} × ${fmt(x.h, 2)}`;
+    d.textContent = `${formatNum(x.l, 2)} × ${formatNum(x.w, 2)} × ${formatNum(x.h, 2)}`;
     const v = document.createElement("div");
     v.className = "val";
-    v.textContent = fmt(x.r);
+    v.textContent = fmtResult(x.r);
     row.append(d, v);
     list.appendChild(row);
   });
@@ -214,7 +215,7 @@ function openSettings() {
   setDivisor.value = settings.divisor;
   setUnitIn.value = settings.unitIn;
   setUnitOut.value = settings.unitOut;
-  setRound.value = String(settings.round);
+  setThreshold.value = settings.threshold;
   overlay.classList.add("open");
 }
 
@@ -233,13 +234,18 @@ settingsSave.addEventListener("click", () => {
     alert("Mức chia phải lớn hơn 0.");
     return;
   }
+  const th = Number(setThreshold.value);
+  if (!Number.isFinite(th) || th <= 0 || th >= 1) {
+    alert("Ngưỡng làm tròn phải lớn hơn 0 và nhỏ hơn 1 (ví dụ 0.35).");
+    return;
+  }
   settings.divisor = div;
   settings.unitIn = (setUnitIn.value.trim() || DEFAULTS.unitIn).slice(0, 12);
   settings.unitOut = (setUnitOut.value.trim() || DEFAULTS.unitOut).slice(0, 20);
-  settings.round = Number(setRound.value);
+  settings.threshold = th;
   saveSettings();
   applySettingsUI();
-  render(); // cập nhật lại format lịch sử theo quy ước làm tròn mới
+  render();
   closeSettings();
 });
 
@@ -256,7 +262,7 @@ form.addEventListener("submit", e => {
     return;
   }
   const r = a[0] * a[1] * a[2] / settings.divisor;
-  result.textContent = fmt(r);
+  result.textContent = fmtResult(r);
   history.unshift({ l: a[0], w: a[1], h: a[2], r });
   history = history.slice(0, 50);
   saveHistory();
@@ -296,7 +302,7 @@ installBtn.addEventListener("click", async () => {
 });
 window.addEventListener("appinstalled", () => {
   installBtn.style.display = "none";
-  $("status").textContent = "V2.1 · Đã cài như ứng dụng";
+  $("status").textContent = "V2.2 · Đã cài như ứng dụng";
 });
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
