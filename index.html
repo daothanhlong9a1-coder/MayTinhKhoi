@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ 6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Tính khối lượng</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--soft:#f9fafb;--danger:#dc2626}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;justify-content:center;padding:16px 13px 30px}
+.app{width:min(100%,520px)}
+header{padding:9px 4px 17px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:7px 0 0;color:var(--muted);font-size:13px}
+.install{display:none;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:13px;background:#fff;font-weight:700;color:var(--text)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 8px 30px rgba(17,24,39,.06)}
+.form{display:grid;gap:13px}.field label{display:flex;justify-content:space-between;margin-bottom:7px;font-size:14px;font-weight:700}.field label span{color:var(--muted);font-size:11px;font-weight:500}
+.input{position:relative}input{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
+input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation}
+.primary{background:var(--accent);color:#fff}.secondary{background:#f3f4f6;color:var(--text);border:1px solid var(--line)}
+.error{min-height:19px;margin-top:7px;color:var(--danger);font-size:12px;font-weight:650}.result{margin-top:17px;padding:17px;border-radius:18px;background:var(--soft);border:1px solid var(--line)}
+.result-title{font-size:12px;color:var(--muted);font-weight:750}.result-row{display:flex;align-items:baseline;gap:8px;margin-top:5px;flex-wrap:wrap}.result-value{font-size:40px;line-height:1.05;font-weight:850;letter-spacing:-1px;overflow-wrap:anywhere}.result-unit{font-size:14px;color:var(--muted);font-weight:650}
+.formula{margin-top:15px;padding:11px;border-radius:12px;background:#f3f4f6;color:#4b5563;text-align:center;font-size:12px}
+.history{margin-top:17px}.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.history h2{font-size:15px;margin:0}.clear{border:0;background:transparent;color:var(--muted);min-height:34px;font-size:12px;padding:5px}
+.list{display:grid;gap:7px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:12px}.dims{color:var(--muted)}.val{font-weight:800;white-space:nowrap}
+.status{margin-top:13px;text-align:center;color:#9ca3af;font-size:10px}.footer{text-align:center;color:#9ca3af;font-size:10px;margin-top:12px}
+@media(max-width:360px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div><h1>Tính khối lượng</h1><p>Dài × Rộng × Cao ÷ 6</p></div>
+  <button id="installBtn" class="install" type="button">Cài app</button>
+</header>
+
+<section class="card">
+<form id="form" novalidate>
+<div class="form">
+  <div class="field"><label for="l">Dài <span>kích thước</span></label><div class="input"><input id="l" type="number" inputmode="decimal" min="0" step="any" placeholder="Nhập chiều dài"><span class="unit">cm</span></div></div>
+  <div class="field"><label for="w">Rộng <span>kích thước</span></label><div class="input"><input id="w" type="number" inputmode="decimal" min="0" step="any" placeholder="Nhập chiều rộng"><span class="unit">cm</span></div></div>
+  <div class="field"><label for="h">Cao <span>kích thước</span></label><div class="input"><input id="h" type="number" inputmode="decimal" min="0" step="any" placeholder="Nhập chiều cao"><span class="unit">cm</span></div></div>
+</div>
+<div id="error" class="error" role="alert"></div>
+<div class="actions"><button class="primary" type="submit">TÍNH</button><button id="reset" class="secondary" type="button">XÓA</button></div>
+</form>
+<section class="result" aria-live="polite"><div class="result-title">KẾT QUẢ</div><div class="result-row"><div id="result" class="result-value">0</div><div class="result-unit">đơn vị</div></div><div class="formula">Dài × Rộng × Cao ÷ 6</div></section>
+</section>
+
+<section class="history">
+<div class="history-head"><h2>Lịch sử</h2><button id="clear" class="clear" type="button">Xóa lịch sử</button></div>
+<div id="list" class="list"></div>
+</section>
+
+<div id="status" class="status">V2.0 · PWA · Có thể chạy offline</div>
+<div class="footer">Không cần Internet sau khi đã mở/cài app</div>
+</main>
+
+<script>
+(() => {
+"use strict";
+const $=id=>document.getElementById(id);
+const form=$("form"), l=$("l"), w=$("w"), h=$("h"), result=$("result"), error=$("error"), list=$("list"), reset=$("reset"), clear=$("clear"), installBtn=$("installBtn");
+let history=JSON.parse(localStorage.getItem("weightHistoryV2")||"[]");
+let deferredPrompt=null;
+
+function fmt(n){return Number.isFinite(n)?new Intl.NumberFormat("vi-VN",{maximumFractionDigits:2}).format(n):"0"}
+function save(){localStorage.setItem("weightHistoryV2",JSON.stringify(history))}
+function render(){
+ list.innerHTML="";
+ if(!history.length){let e=document.createElement("div");e.style.cssText="color:#9ca3af;font-size:12px";e.textContent="Chưa có phép tính nào.";list.appendChild(e);return}
+ history.slice(0,10).forEach(x=>{
+  let row=document.createElement("div");row.className="item";
+  let d=document.createElement("div");d.className="dims";d.textContent=`${fmt(x.l)} × ${fmt(x.w)} × ${fmt(x.h)}`;
+  let v=document.createElement("div");v.className="val";v.textContent=fmt(x.r);
+  row.append(d,v);list.appendChild(row);
+ });
+}
+form.addEventListener("submit",e=>{
+ e.preventDefault(); error.textContent="";
+ const a=[l,w,h].map(x=>Number(x.value));
+ if(a.some(x=>!Number.isFinite(x))){error.textContent="Vui lòng nhập đầy đủ 3 kích thước.";return}
+ if(a.some(x=>x<0)){error.textContent="Kích thước không được nhỏ hơn 0.";return}
+ const r=a[0]*a[1]*a[2]/6;
+ result.textContent=fmt(r);
+ history.unshift({l:a[0],w:a[1],h:a[2],r});
+ history=history.slice(0,10);save();render();
+});
+reset.addEventListener("click",()=>{form.reset();error.textContent="";result.textContent="0";l.focus()});
+clear.addEventListener("click",()=>{history=[];save();render()});
+[l,w,h].forEach(x=>x.addEventListener("input",()=>error.textContent=""));
+render();
+
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display="block"});
+installBtn.addEventListener("click",async()=>{
+ if(!deferredPrompt)return;
+ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; installBtn.style.display="none";
+});
+window.addEventListener("appinstalled",()=>{installBtn.style.display="none";$("status").textContent="V2.0 · Đã cài như ứng dụng"});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
