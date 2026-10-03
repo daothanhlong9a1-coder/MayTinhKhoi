@@ -1,4 +1,4 @@
-const CACHE = "khoiluong-v2.4";
+const CACHE = "khoiluong-v2.5";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
@@ -23,6 +23,12 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
 
   const url = new URL(e.request.url);
+  // Không cache CDN Tesseract / model OCR
+  if (url.hostname.includes("jsdelivr") || url.hostname.includes("tesseract")) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
   const isNav = e.request.mode === "navigate" ||
     (e.request.headers.get("accept") || "").includes("text/html") ||
     url.pathname.endsWith(".html") ||

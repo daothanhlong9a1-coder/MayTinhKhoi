@@ -20,9 +20,8 @@ h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:
 .settings-btn{display:block;font-size:13px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 8px 30px rgba(17,24,39,.06)}
 .form{display:grid;gap:13px}.field label{display:flex;justify-content:space-between;margin-bottom:7px;font-size:14px;font-weight:700}.field label span{color:var(--muted);font-size:11px;font-weight:500}
-.input{position:relative}input,select{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
-select{padding-right:15px;font-size:16px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-input:focus,select:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
+.input{position:relative}input{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
+input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
 .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}
 button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .primary{background:var(--accent);color:#fff}.secondary{background:#f3f4f6;color:var(--text);border:1px solid var(--line)}
@@ -34,6 +33,8 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .photo-wrap{margin-top:14px;display:none;text-align:center}
 .photo-wrap.show{display:block}
 .photo-wrap img{max-width:100%;max-height:320px;border-radius:14px;border:1px solid var(--line);object-fit:contain;background:#111}
+.ocr-status{margin-top:8px;font-size:12px;color:var(--muted);min-height:18px}
+.ocr-text{margin-top:6px;padding:8px 10px;background:#f3f4f6;border-radius:10px;font-size:12px;color:#374151;text-align:left;white-space:pre-wrap;word-break:break-word;max-height:80px;overflow:auto;display:none}
 .photo-actions{margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .photo-actions button{min-height:40px;padding:0 14px;font-size:12px;border-radius:10px}
 .share-btn{background:#0068ff;color:#fff;border:0}
@@ -52,7 +53,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .modal-close{border:0;background:#f3f4f6;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center}
 .modal .field{margin-bottom:14px}
 .modal .field label{margin-bottom:6px}
-.modal input,.modal select{height:48px;font-size:16px;padding:0 14px}
+.modal input{height:48px;font-size:16px;padding:0 14px}
 .modal .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
 .cam-overlay{display:none;position:fixed;inset:0;background:#000;z-index:150;flex-direction:column}
@@ -99,6 +100,8 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 
 <div id="photoWrap" class="photo-wrap">
   <img id="photoPreview" alt="Ảnh đã chụp">
+  <div id="ocrStatus" class="ocr-status"></div>
+  <div id="ocrTextBox" class="ocr-text"></div>
   <div class="photo-actions">
     <button id="photoRetake" class="secondary" type="button">Chụp lại</button>
     <button id="photoClear" class="secondary" type="button">Xóa ảnh</button>
@@ -121,8 +124,8 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.4 · PWA · Tự cập nhật khi có mạng</div>
-<div class="footer">Không cần Internet sau khi đã mở/cài app</div>
+<div id="status" class="status">V2.5 · PWA · OCR + chia sẻ Zalo</div>
+<div class="footer">Không cần Internet sau khi đã mở/cài app (OCR lần đầu cần mạng)</div>
 </main>
 
 <input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none">
@@ -157,7 +160,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
     <div class="field">
       <label for="setThreshold">Ngưỡng làm tròn</label>
       <input id="setThreshold" type="number" inputmode="decimal" min="0.01" max="0.99" step="0.01" value="0.35">
-      <div class="hint">Phần thập phân &lt; ngưỡng → làm tròn xuống<br>Phần thập phân ≥ ngưỡng → làm tròn lên<br>Ví dụ 0.35: 10.34 → 10 · 10.35 → 11</div>
+      <div class="hint">Phần thập phân &lt; ngưỡng → làm tròn xuống<br>Phần thập phân ≥ ngưỡng → làm tròn lên</div>
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="primary" type="button">Lưu</button>
@@ -166,10 +169,11 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -186,6 +190,7 @@ const unitL = $("unitL"), unitW = $("unitW"), unitH = $("unitH");
 const cameraBtn = $("cameraBtn"), fileInput = $("fileInput");
 const photoWrap = $("photoWrap"), photoPreview = $("photoPreview");
 const photoRetake = $("photoRetake"), photoClear = $("photoClear"), shareBtn = $("shareBtn");
+const ocrStatus = $("ocrStatus"), ocrTextBox = $("ocrTextBox");
 const camOverlay = $("camOverlay"), camVideo = $("camVideo");
 const camCapture = $("camCapture"), camClose = $("camClose");
 const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
@@ -195,11 +200,14 @@ let settings = loadSettings();
 let history = [];
 try { history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]"); } catch (_) { history = []; }
 let deferredPrompt = null;
-let currentPhoto = null;      // ảnh gốc (đã nén)
-let resultPhoto = null;       // ảnh đã ghi kết quả lên
-let lastCalc = null;          // {l,w,h,r, text}
+let currentPhoto = null;
+let resultPhoto = null;
+let lastCalc = null;
+let ocrText = "";
+let ocrBusy = false;
 let camStream = null;
 let waitingWorker = null;
+let tesseractWorker = null;
 
 function loadSettings() {
   try {
@@ -213,14 +221,10 @@ function loadSettings() {
     };
   } catch { return { ...DEFAULTS }; }
 }
-
-function saveSettings() {
-  localStorage.setItem("weightSettingsV2", JSON.stringify(settings));
-}
+function saveSettings() { localStorage.setItem("weightSettingsV2", JSON.stringify(settings)); }
 
 function applySettingsUI() {
-  const d = settings.divisor;
-  const formulaText = `Dài × Rộng × Cao ÷ ${formatNum(d)}`;
+  const formulaText = `Dài × Rộng × Cao ÷ ${formatNum(settings.divisor)}`;
   subtitle.textContent = formulaText;
   formula.textContent = formulaText;
   resultUnit.textContent = settings.unitOut;
@@ -235,20 +239,15 @@ function customRound(n) {
   const frac = n - intPart;
   return frac < settings.threshold ? intPart : intPart + 1;
 }
-
 function formatNum(n, maxDigits = 6) {
   if (!Number.isFinite(n)) return "0";
   return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: maxDigits }).format(n);
 }
-
-function fmtResult(n) {
-  return formatNum(customRound(n), 0);
-}
+function fmtResult(n) { return formatNum(customRound(n), 0); }
 
 function saveHistory() {
-  try {
-    localStorage.setItem("weightHistoryV2", JSON.stringify(history));
-  } catch (e) {
+  try { localStorage.setItem("weightHistoryV2", JSON.stringify(history)); }
+  catch {
     history = history.map(x => ({ l: x.l, w: x.w, h: x.h, r: x.r }));
     try { localStorage.setItem("weightHistoryV2", JSON.stringify(history)); } catch (_) {}
   }
@@ -299,9 +298,24 @@ function clearPhotoUI() {
   currentPhoto = null;
   resultPhoto = null;
   lastCalc = null;
+  ocrText = "";
+  ocrBusy = false;
   photoPreview.src = "";
   photoWrap.classList.remove("show");
   shareBtn.style.display = "none";
+  ocrStatus.textContent = "";
+  ocrTextBox.style.display = "none";
+  ocrTextBox.textContent = "";
+}
+
+function resetFormFull() {
+  form.reset();
+  l.value = "";
+  w.value = "";
+  h.value = "";
+  errorEl.textContent = "";
+  resultEl.textContent = "0";
+  clearPhotoUI();
 }
 
 function compressImage(fileOrBlob, maxW = 720, quality = 0.72) {
@@ -322,7 +336,6 @@ function compressImage(fileOrBlob, maxW = 720, quality = 0.72) {
   });
 }
 
-/** Vẽ kết quả lên ảnh */
 function drawResultOnPhoto(photoDataUrl, calc) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -336,38 +349,32 @@ function drawResultOnPhoto(photoDataUrl, calc) {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, ww, hh);
 
-      // Thanh thông tin phía dưới
       const barH = Math.max(90, Math.round(hh * 0.18));
       const pad = Math.round(ww * 0.04);
       ctx.fillStyle = "rgba(17,24,39,0.78)";
       ctx.fillRect(0, hh - barH, ww, barH);
 
-      // Kết quả lớn
       const resultText = fmtResult(calc.r) + " " + settings.unitOut;
       ctx.fillStyle = "#ffffff";
       ctx.font = `bold ${Math.round(barH * 0.38)}px system-ui,sans-serif`;
       ctx.textBaseline = "top";
       ctx.fillText(resultText, pad, hh - barH + Math.round(barH * 0.12));
 
-      // Kích thước
       const dimText = `${formatNum(calc.l, 1)} × ${formatNum(calc.w, 1)} × ${formatNum(calc.h, 1)} ${settings.unitIn}`;
       ctx.font = `${Math.round(barH * 0.2)}px system-ui,sans-serif`;
       ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.fillText(dimText, pad, hh - barH + Math.round(barH * 0.58));
 
-      // Badge góc trên
       const badge = "Tính khối lượng";
       ctx.font = `bold ${Math.round(ww * 0.035)}px system-ui,sans-serif`;
       const tw = ctx.measureText(badge).width;
       const bh = Math.round(ww * 0.055);
-      const bx = pad;
-      const by = pad;
       ctx.fillStyle = "rgba(17,24,39,0.7)";
-      roundRect(ctx, bx - 6, by - 4, tw + 16, bh, 8);
+      roundRect(ctx, pad - 6, pad - 4, tw + 16, bh, 8);
       ctx.fill();
       ctx.fillStyle = "#fff";
       ctx.textBaseline = "middle";
-      ctx.fillText(badge, bx + 2, by + bh / 2 - 2);
+      ctx.fillText(badge, pad + 2, pad + bh / 2 - 2);
 
       resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
@@ -395,32 +402,83 @@ function dataURLtoBlob(dataUrl) {
   return new Blob([arr], { type: mime });
 }
 
+async function ensureOCRWorker() {
+  if (tesseractWorker) return tesseractWorker;
+  if (typeof Tesseract === "undefined") throw new Error("OCR chưa sẵn sàng");
+  ocrStatus.textContent = "Đang tải OCR…";
+  tesseractWorker = await Tesseract.createWorker("vie+eng", 1, {
+    logger: m => {
+      if (m.status === "recognizing text" && m.progress != null) {
+        ocrStatus.textContent = "Đang nhận diện… " + Math.round(m.progress * 100) + "%";
+      }
+    }
+  });
+  return tesseractWorker;
+}
+
+async function runOCR(dataUrl) {
+  if (ocrBusy) return;
+  ocrBusy = true;
+  ocrText = "";
+  ocrTextBox.style.display = "none";
+  ocrTextBox.textContent = "";
+  ocrStatus.textContent = "Đang nhận diện chữ…";
+  try {
+    const worker = await ensureOCRWorker();
+    const { data } = await worker.recognize(dataUrl);
+    ocrText = (data && data.text ? data.text : "").replace(/\s+\n/g, "\n").trim();
+    if (ocrText) {
+      ocrStatus.textContent = "Đã nhận diện chữ";
+      ocrTextBox.textContent = ocrText;
+      ocrTextBox.style.display = "block";
+    } else {
+      ocrStatus.textContent = "Không thấy chữ trên ảnh";
+    }
+  } catch (err) {
+    ocrStatus.textContent = "OCR lỗi (cần mạng lần đầu)";
+    ocrText = "";
+  } finally {
+    ocrBusy = false;
+  }
+}
+
 async function shareToZalo() {
   const imgData = resultPhoto || currentPhoto;
   if (!imgData) return;
 
   const blob = dataURLtoBlob(imgData);
   const file = new File([blob], "khoi-luong.jpg", { type: "image/jpeg" });
-  const text = lastCalc
-    ? `Khối lượng: ${fmtResult(lastCalc.r)} ${settings.unitOut}\n${formatNum(lastCalc.l, 1)} × ${formatNum(lastCalc.w, 1)} × ${formatNum(lastCalc.h, 1)} ${settings.unitIn}`
-    : "Kết quả tính khối lượng";
 
-  // Web Share API — trên điện thoại sẽ hiện Zalo trong danh sách chia sẻ
+  // Nội dung tin nhắn = chữ OCR (nếu có), không thêm text thừa
+  const shareText = ocrText || "";
+
+  let shared = false;
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: "Tính khối lượng", text });
-      return;
+      const payload = { files: [file], title: "Tính khối lượng" };
+      if (shareText) payload.text = shareText;
+      await navigator.share(payload);
+      shared = true;
     } catch (e) {
       if (e.name === "AbortError") return;
     }
   }
 
-  // Fallback: tải ảnh xuống để người dùng gửi vào Zalo
-  const a = document.createElement("a");
-  a.href = imgData;
-  a.download = "khoi-luong.jpg";
-  a.click();
-  alert("Đã tải ảnh. Mở Zalo → chọn ảnh vừa tải để gửi.");
+  if (!shared) {
+    const a = document.createElement("a");
+    a.href = imgData;
+    a.download = "khoi-luong.jpg";
+    a.click();
+    if (shareText) {
+      try { await navigator.clipboard.writeText(shareText); } catch (_) {}
+      alert("Đã tải ảnh" + (shareText ? " và copy chữ OCR" : "") + ". Mở Zalo gửi ảnh.");
+    } else {
+      alert("Đã tải ảnh. Mở Zalo → chọn ảnh vừa tải để gửi.");
+    }
+    shared = true;
+  }
+
+  if (shared) resetFormFull();
 }
 
 function stopCamera() {
@@ -449,7 +507,6 @@ async function openLiveCamera() {
   }
 }
 
-// —— Events ——
 cameraBtn.addEventListener("click", e => { e.preventDefault(); openLiveCamera(); });
 photoRetake.addEventListener("click", e => { e.preventDefault(); openLiveCamera(); });
 photoClear.addEventListener("click", e => { e.preventDefault(); clearPhotoUI(); });
@@ -465,8 +522,10 @@ camCapture.addEventListener("click", async e => {
   if (ww > maxW) { hh = Math.round(hh * maxW / ww); ww = maxW; }
   canvas.width = ww; canvas.height = hh;
   canvas.getContext("2d").drawImage(camVideo, 0, 0, ww, hh);
-  showPhoto(canvas.toDataURL("image/jpeg", 0.72), false);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+  showPhoto(dataUrl, false);
   stopCamera();
+  runOCR(dataUrl);
 });
 
 fileInput.addEventListener("change", async () => {
@@ -474,7 +533,9 @@ fileInput.addEventListener("change", async () => {
   fileInput.value = "";
   if (!file) return;
   try {
-    showPhoto(await compressImage(file), false);
+    const dataUrl = await compressImage(file);
+    showPhoto(dataUrl, false);
+    runOCR(dataUrl);
   } catch {
     errorEl.textContent = "Không thể đọc ảnh.";
   }
@@ -500,7 +561,7 @@ settingsSave.addEventListener("click", e => {
   if (!Number.isFinite(div) || div <= 0) { alert("Mức chia phải lớn hơn 0."); return; }
   const th = Number(setThreshold.value);
   if (!Number.isFinite(th) || th <= 0 || th >= 1) {
-    alert("Ngưỡng làm tròn phải lớn hơn 0 và nhỏ hơn 1 (ví dụ 0.35).");
+    alert("Ngưỡng làm tròn phải trong (0, 1).");
     return;
   }
   settings.divisor = div;
@@ -513,7 +574,6 @@ settingsSave.addEventListener("click", e => {
   closeSettings();
 });
 
-// TÍNH
 form.addEventListener("submit", async e => {
   e.preventDefault();
   errorEl.textContent = "";
@@ -532,7 +592,6 @@ form.addEventListener("submit", async e => {
 
   const entry = { l: a[0], w: a[1], h: a[2], r };
 
-  // Nếu có ảnh → vẽ kết quả lên ảnh
   if (currentPhoto) {
     try {
       const withResult = await drawResultOnPhoto(currentPhoto, lastCalc);
@@ -550,21 +609,13 @@ form.addEventListener("submit", async e => {
   render();
 });
 
-// XÓA — reset form + ảnh + kết quả
 resetBtn.addEventListener("click", e => {
   e.preventDefault();
   e.stopPropagation();
-  form.reset();
-  l.value = "";
-  w.value = "";
-  h.value = "";
-  errorEl.textContent = "";
-  resultEl.textContent = "0";
-  clearPhotoUI();
+  resetFormFull();
   try { l.focus(); } catch (_) {}
 });
 
-// Xóa lịch sử
 clearHistBtn.addEventListener("click", e => {
   e.preventDefault();
   e.stopPropagation();
@@ -580,7 +631,6 @@ clearHistBtn.addEventListener("click", e => {
 applySettingsUI();
 render();
 
-// PWA install
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
@@ -599,7 +649,6 @@ window.addEventListener("appinstalled", () => {
   $("status").textContent = "V" + APP_VERSION + " · Đã cài như ứng dụng";
 });
 
-// Auto update SW
 function showUpdateBanner(worker) {
   waitingWorker = worker;
   updateBanner.classList.add("show");
