@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ mức chia">
-<meta name="app-version" content="3.7">
+<meta name="app-version" content="3.8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tính khối lượng</title>
@@ -87,17 +87,23 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .cam-overlay{display:none;position:fixed;inset:0;background:#000;z-index:150;flex-direction:column}
 .cam-overlay.open{display:flex}
-.cam-video{flex:1;width:100%;object-fit:cover;background:#111}
-.cam-bar{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:16px 20px;background:#111}
+.cam-video{flex:1;width:100%;min-height:0;object-fit:cover;background:#111}
+.cam-bar{
+  flex-shrink:0;display:flex;gap:12px;justify-content:space-between;align-items:center;
+  padding:12px 20px;padding-bottom:max(12px, env(safe-area-inset-bottom));
+  background:#111;min-height:72px;z-index:5;position:relative;
+}
 .cam-bar-center{display:flex;align-items:center;justify-content:center;flex:1}
 .cam-bar button{min-height:48px;min-width:48px;border-radius:50%;border:0;font-weight:700;cursor:pointer}
 .cam-capture{width:64px;height:64px;background:#fff;border:4px solid #6b7280 !important}
 .cam-close{background:#374151;color:#fff;padding:0 14px;border-radius:24px !important;font-size:12px;min-width:auto}
 .cam-flash{background:rgba(55,65,81,.85);color:#fff;width:44px;height:44px;min-width:44px !important;border-radius:50% !important;padding:0;display:none;align-items:center;justify-content:center;font-size:0}
-.cam-flash svg{width:22px;height:22px;display:block}
+.cam-flash svg{width:22px;height:22px;display:block;transition:transform .15s}
 .cam-flash.on{background:#f59e0b}.cam-flash.on svg path{fill:#111}
 .cam-gallery{width:44px;height:44px;min-width:44px;border-radius:10px !important;padding:0;background:rgba(55,65,81,.85);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.5) !important}
-.cam-gallery svg{width:22px;height:22px}
+.cam-gallery svg{width:22px;height:22px;display:block;transition:transform .15s}
+.cam-close-top-wrap{position:absolute;top:max(10px, env(safe-area-inset-top));left:max(10px, env(safe-area-inset-left));z-index:6}
+
 .viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:160;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 .viewer.open{display:flex}
 .viewer img{max-width:100%;max-height:78vh;object-fit:contain;border-radius:12px}
@@ -152,9 +158,34 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
     padding-left:max(12px, env(safe-area-inset-left));
     padding-right:max(12px, env(safe-area-inset-right));
   }
-  .cam-overlay{
-    padding-left:env(safe-area-inset-left);
-    padding-right:env(safe-area-inset-right);
+  /* Camera: giữ layout dọc (thanh nút dưới), chỉ xoay icon 90° */
+  .cam-overlay.open{
+    flex-direction:column;
+    padding:0;
+  }
+  .cam-video{flex:1;min-height:0;width:100%}
+  .cam-bar{
+    position:relative;
+    left:auto;right:auto;bottom:auto;
+    width:100%;
+    flex-shrink:0;
+    min-height:76px;
+    padding:10px max(16px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    display:flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  .cam-capture{width:56px;height:56px}
+  .cam-gallery,.cam-flash{width:40px;height:40px;min-width:40px !important}
+  .cam-gallery svg,.cam-flash svg{
+    transform:rotate(90deg);
+  }
+  .cam-close-top-wrap{
+    top:max(8px, env(safe-area-inset-top));
+    left:max(8px, env(safe-area-inset-left));
+  }
+  .cam-close-top-wrap .cam-close{
+    transform:rotate(90deg);
   }
 }
 </style>
@@ -226,14 +257,14 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V3.7 · PWA</div>
+<div id="status" class="status">V3.8 · PWA</div>
 <div class="footer">Ứng dụng PWA được thiết kế bởi Long</div>
 </main>
 
 <input id="fileInput" type="file" accept="image/*" style="display:none">
 
 <div id="camOverlay" class="cam-overlay">
-  <div style="position:absolute;top:12px;left:12px;z-index:2">
+  <div class="cam-close-top-wrap">
     <button id="camCloseTop" class="cam-close" type="button">Đóng</button>
   </div>
   <video id="camVideo" class="cam-video" playsinline autoplay muted></video>
@@ -297,7 +328,7 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -328,6 +359,7 @@ let history = [];
 try { history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]"); } catch (_) { history = []; }
 let deferredPrompt = null;
 let currentPhoto = null;
+let basePhoto = null;
 let resultPhoto = null;
 let lastCalc = null;
 let camStream = null;
@@ -490,8 +522,13 @@ function render() {
 }
 
 function showPhoto(dataUrl, isResult) {
-  if (isResult) resultPhoto = dataUrl;
-  else { currentPhoto = dataUrl; resultPhoto = null; }
+  if (isResult) {
+    resultPhoto = dataUrl;
+  } else {
+    basePhoto = dataUrl;
+    currentPhoto = dataUrl;
+    resultPhoto = null;
+  }
   photoPreview.src = dataUrl;
   photoWrap.classList.add("show");
   shareBtn.style.display = isResult ? "inline-block" : "none";
@@ -499,6 +536,7 @@ function showPhoto(dataUrl, isResult) {
 
 function clearPhotoUI() {
   currentPhoto = null;
+  basePhoto = null;
   resultPhoto = null;
   ocrText = "";
   ocrBusy = false;
@@ -757,7 +795,7 @@ async function applyPhoto(dataUrl) {
   showPhoto(dataUrl, false);
   if (lastCalc) {
     try {
-      var withResult = await drawResultOnPhoto(dataUrl, lastCalc);
+      var withResult = await drawResultOnPhoto(basePhoto || dataUrl, lastCalc);
       showPhoto(withResult, true);
       var entry = { l: lastCalc.l, w: lastCalc.w, h: lastCalc.h, r: lastCalc.r, img: withResult };
       history.unshift(entry);
@@ -769,6 +807,16 @@ async function applyPhoto(dataUrl) {
     }
   }
   runOCR(dataUrl);
+}
+
+async function refreshPhotoOverlay() {
+  if (!basePhoto || !lastCalc) return;
+  try {
+    var withResult = await drawResultOnPhoto(basePhoto, lastCalc);
+    showPhoto(withResult, true);
+  } catch (e) {
+    console.warn("refresh overlay", e);
+  }
 }
 
 function doCalculate(fromAuto) {
@@ -786,19 +834,21 @@ function doCalculate(fromAuto) {
   var r = Math.trunc(customRound(rRaw));
   resultEl.textContent = fmtResult(r);
   lastCalc = { l: a[0], w: a[1], h: a[2], r: r };
+  // Có ảnh → cập nhật chữ kg trên ảnh theo input mới
+  if (basePhoto) refreshPhotoOverlay();
   return true;
 }
 
 async function doCalculateAndPhoto() {
   if (!doCalculate(false)) return;
   var entry = { l: lastCalc.l, w: lastCalc.w, h: lastCalc.h, r: lastCalc.r };
-  if (currentPhoto) {
+  if (basePhoto) {
     try {
-      var withResult = await drawResultOnPhoto(currentPhoto, lastCalc);
+      var withResult = await drawResultOnPhoto(basePhoto, lastCalc);
       showPhoto(withResult, true);
       entry.img = withResult;
     } catch {
-      entry.img = currentPhoto;
+      entry.img = basePhoto;
       shareBtn.style.display = "inline-block";
     }
   }
