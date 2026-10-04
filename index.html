@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ mức chia">
-<meta name="app-version" content="3.2">
+<meta name="app-version" content="3.3">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tính khối lượng</title>
@@ -138,7 +138,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V3.2 · PWA · OCR</div>
+<div id="status" class="status">V3.3 · PWA · OCR cloud</div>
 <div class="footer">Chạm lịch sử có ảnh để xem lớn</div>
 </main>
 
@@ -184,6 +184,11 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
       <input id="setThreshold" type="number" inputmode="decimal" min="0.01" max="0.99" step="0.01" value="0.35">
       <div class="hint">Phần thập phân &lt; ngưỡng → xuống · ≥ ngưỡng → lên · Kết quả luôn số nguyên</div>
     </div>
+    <div class="field">
+      <label for="setOcrKey">OCR Cloud API key (OCR.space)</label>
+      <input id="setOcrKey" type="text" maxlength="80" placeholder="Để trống = chỉ Tesseract local" autocomplete="off">
+      <div class="hint">Có mạng + key → OCR cloud (chính xác hơn). Miễn phí: ocr.space/ocrapi · Offline → Tesseract</div>
+    </div>
     <div class="modal-actions">
       <button id="settingsSave" class="primary" type="button">Lưu</button>
       <button id="settingsCancel" class="secondary" type="button">Hủy</button>
@@ -195,7 +200,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "3.2";
+const APP_VERSION = "3.3";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -206,7 +211,7 @@ const installBtn = $("installBtn"), settingsBtn = $("settingsBtn");
 const overlay = $("overlay"), modalClose = $("modalClose");
 const settingsSave = $("settingsSave"), settingsCancel = $("settingsCancel");
 const setDivisor = $("setDivisor"), setUnitIn = $("setUnitIn");
-const setUnitOut = $("setUnitOut"), setThreshold = $("setThreshold");
+const setUnitOut = $("setUnitOut"), setThreshold = $("setThreshold"), setOcrKey = $("setOcrKey");
 const subtitle = $("subtitle"), formula = $("formula"), resultUnit = $("resultUnit");
 const unitL = $("unitL"), unitW = $("unitW"), unitH = $("unitH");
 const cameraBtn = $("cameraBtn"), fileInput = $("fileInput");
@@ -222,7 +227,7 @@ const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
 const successBanner = $("successBanner"), successCloseBtn = $("successCloseBtn");
 const imgViewer = $("imgViewer"), viewerImg = $("viewerImg"), viewerInfo = $("viewerInfo"), viewerClose = $("viewerClose");
 
-const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35 };
+const DEFAULTS = { divisor: 6, unitIn: "cm", unitOut: "kg", threshold: 0.35, ocrKey: "" };
 let settings = loadSettings();
 let history = [];
 try { history = JSON.parse(localStorage.getItem("weightHistoryV2") || "[]"); } catch (_) { history = []; }
@@ -241,7 +246,8 @@ function loadSettings() {
       divisor: Number.isFinite(Number(s.divisor)) && Number(s.divisor) > 0 ? Number(s.divisor) : DEFAULTS.divisor,
       unitIn: (s.unitIn || DEFAULTS.unitIn).toString().slice(0, 12),
       unitOut: (s.unitOut || DEFAULTS.unitOut).toString().slice(0, 20),
-      threshold: Number.isFinite(th) && th > 0 && th < 1 ? th : DEFAULTS.threshold
+      threshold: Number.isFinite(th) && th > 0 && th < 1 ? th : DEFAULTS.threshold,
+      ocrKey: (s.ocrKey || "").toString().slice(0, 80)
     };
   } catch { return Object.assign({}, DEFAULTS); }
 }
@@ -491,6 +497,40 @@ async function ensureOCRWorker() {
   return tesseractWorker;
 }
 
+async function ocrCloud(dataUrl) {
+  var key = (settings.ocrKey || "").trim();
+  if (!key || !navigator.onLine) return null;
+  ocrStatus.textContent = "OCR cloud…";
+  var form = new FormData();
+  form.append("base64Image", dataUrl);
+  form.append("language", "auto");
+  form.append("isOverlayRequired", "false");
+  form.append("OCREngine", "2");
+  form.append("scale", "true");
+  form.append("detectOrientation", "true");
+  var res = await fetch("https://api.ocr.space/parse/image", {
+    method: "POST",
+    headers: { apikey: key },
+    body: form
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  var json = await res.json();
+  if (json.IsErroredOnProcessing) {
+    var em = json.ErrorMessage;
+    throw new Error(Array.isArray(em) ? em.join("; ") : (em || "cloud error"));
+  }
+  var parts = json.ParsedResults || [];
+  var text = parts.map(function (p) { return p.ParsedText || ""; }).join("\n").replace(/[ \t]+\n/g, "\n").trim();
+  return text;
+}
+
+async function ocrLocal(dataUrl) {
+  ocrStatus.textContent = "OCR local (Tesseract)…";
+  var worker = await ensureOCRWorker();
+  var result = await worker.recognize(dataUrl);
+  return (result && result.data && result.data.text ? result.data.text : "").replace(/[ \t]+\n/g, "\n").trim();
+}
+
 async function runOCR(dataUrl) {
   if (ocrBusy) return;
   ocrBusy = true;
@@ -499,11 +539,26 @@ async function runOCR(dataUrl) {
   ocrTextBox.textContent = "";
   ocrStatus.textContent = "Đang nhận diện chữ…";
   try {
-    var worker = await ensureOCRWorker();
-    var result = await worker.recognize(dataUrl);
-    ocrText = (result && result.data && result.data.text ? result.data.text : "").replace(/[ \t]+\n/g, "\n").trim();
+    var text = null;
+    var source = "";
+    // 1) Cloud khi online + có key
+    if (navigator.onLine && (settings.ocrKey || "").trim()) {
+      try {
+        text = await ocrCloud(dataUrl);
+        source = "cloud";
+      } catch (e) {
+        console.warn("OCR cloud fail, fallback local", e);
+        ocrStatus.textContent = "Cloud lỗi, chuyển local…";
+      }
+    }
+    // 2) Tesseract local
+    if (!text) {
+      text = await ocrLocal(dataUrl);
+      source = "local";
+    }
+    ocrText = text || "";
     if (ocrText) {
-      ocrStatus.textContent = "Đã nhận diện chữ";
+      ocrStatus.textContent = "Đã nhận diện (" + source + ")";
       ocrTextBox.textContent = ocrText;
       ocrTextBox.style.display = "block";
     } else {
@@ -612,6 +667,7 @@ function openSettings() {
   setUnitIn.value = settings.unitIn;
   setUnitOut.value = settings.unitOut;
   setThreshold.value = settings.threshold;
+  setOcrKey.value = settings.ocrKey || "";
   overlay.classList.add("open");
 }
 function closeSettings() { overlay.classList.remove("open"); }
@@ -634,6 +690,7 @@ settingsSave.addEventListener("click", function (e) {
   settings.unitIn = (setUnitIn.value.trim() || DEFAULTS.unitIn).slice(0, 12);
   settings.unitOut = (setUnitOut.value.trim() || DEFAULTS.unitOut).slice(0, 20);
   settings.threshold = th;
+  settings.ocrKey = (setOcrKey.value || "").trim().slice(0, 80);
   saveSettings();
   applySettingsUI();
   // làm tròn lại kết quả đang hiện nếu có

@@ -1,4 +1,4 @@
-const CACHE = "khoiluong-v3.2";
+const CACHE = "khoiluong-v3.3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
@@ -20,14 +20,20 @@ self.addEventListener("message", e => {
 });
 
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
+  if (e.request.method !== "GET" && e.request.method !== "POST") return;
   const url = new URL(e.request.url);
 
-  // OCR CDN: luôn network
-  if (url.hostname.includes("jsdelivr") || url.hostname.includes("tesseract") || url.hostname.includes("projectnaptha")) {
-    e.respondWith(fetch(e.request));
-    return;
+  // OCR cloud + CDN: không can thiệp
+  if (
+    url.hostname.includes("ocr.space") ||
+    url.hostname.includes("jsdelivr") ||
+    url.hostname.includes("tesseract") ||
+    url.hostname.includes("projectnaptha")
+  ) {
+    return; // browser xử lý trực tiếp
   }
+
+  if (e.request.method !== "GET") return;
 
   const isNav = e.request.mode === "navigate" ||
     (e.request.headers.get("accept") || "").includes("text/html") ||
