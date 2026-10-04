@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ mức chia">
-<meta name="app-version" content="2.9">
+<meta name="app-version" content="3.2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tính khối lượng</title>
@@ -34,6 +34,8 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .photo-wrap{margin-top:14px;display:none;text-align:center}
 .photo-wrap.show{display:block}
 .photo-wrap img{max-width:100%;max-height:320px;border-radius:14px;border:1px solid var(--line);object-fit:contain;background:#111}
+.ocr-status{margin-top:8px;font-size:12px;color:var(--muted);min-height:18px}
+.ocr-text{margin-top:6px;padding:8px 10px;background:#f3f4f6;border-radius:10px;font-size:12px;color:#374151;text-align:left;white-space:pre-wrap;word-break:break-word;max-height:100px;overflow:auto;display:none}
 .photo-actions{margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .photo-actions button{min-height:40px;padding:0 14px;font-size:12px;border-radius:10px}
 .share-btn{background:#0068ff;color:#fff;border:0}
@@ -112,6 +114,8 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 
 <div id="photoWrap" class="photo-wrap">
   <img id="photoPreview" alt="Ảnh đã chụp">
+  <div id="ocrStatus" class="ocr-status"></div>
+  <div id="ocrTextBox" class="ocr-text"></div>
   <div class="photo-actions">
     <button id="photoRetake" class="secondary" type="button">Chụp lại</button>
     <button id="photoClear" class="secondary" type="button">Xóa ảnh</button>
@@ -134,7 +138,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V2.9 · PWA</div>
+<div id="status" class="status">V3.2 · PWA · OCR</div>
 <div class="footer">Chạm lịch sử có ảnh để xem lớn</div>
 </main>
 
@@ -187,10 +191,11 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2.9";
+const APP_VERSION = "3.2";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -207,6 +212,10 @@ const unitL = $("unitL"), unitW = $("unitW"), unitH = $("unitH");
 const cameraBtn = $("cameraBtn"), fileInput = $("fileInput");
 const photoWrap = $("photoWrap"), photoPreview = $("photoPreview");
 const photoRetake = $("photoRetake"), photoClear = $("photoClear"), shareBtn = $("shareBtn");
+const ocrStatus = $("ocrStatus"), ocrTextBox = $("ocrTextBox");
+let ocrText = "";
+let ocrBusy = false;
+let tesseractWorker = null;
 const camOverlay = $("camOverlay"), camVideo = $("camVideo");
 const camCapture = $("camCapture"), camClose = $("camClose");
 const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
@@ -249,20 +258,20 @@ function applySettingsUI() {
 }
 
 /**
- * Làm tròn theo ngưỡng → LUÔN trả về số nguyên (int).
- * frac < threshold → xuống; frac >= threshold → lên
+ * Làm tròn theo ngưỡng → luôn số nguyên.
+ * phần thập phân < ngưỡng → xuống; >= ngưỡng → lên
  */
 function customRound(n) {
-  const num = Number(n);
+  var num = Number(n);
   if (!Number.isFinite(num) || num < 0) return 0;
-  // tách phần nguyên / thập phân ổn định
-  const intPart = Math.floor(num);
-  // lấy phần thập phân chính xác hơn (tránh 0.349999999)
-  const frac = Number((num - intPart).toFixed(10));
-  const th = Number(settings.threshold);
-  const threshold = (Number.isFinite(th) && th > 0 && th < 1) ? th : 0.35;
-  if (frac < threshold) return intPart;
-  return intPart + 1;
+  var intPart = Math.floor(num);
+  var fracStr = (num - intPart).toFixed(8);
+  var frac = parseFloat(fracStr);
+  if (!Number.isFinite(frac) || frac < 0) frac = 0;
+  if (frac >= 1) { intPart += 1; frac = 0; }
+  var th = parseFloat(settings.threshold);
+  if (!Number.isFinite(th) || th <= 0 || th >= 1) th = 0.35;
+  return (frac < th) ? intPart : (intPart + 1);
 }
 
 function formatNum(n, maxDigits) {
@@ -274,14 +283,17 @@ function formatNum(n, maxDigits) {
   }).format(Number(n));
 }
 
-/** Hiển thị kết quả: số nguyên thuần (có dấu ngăn nghìn) */
+/** Kết quả: số nguyên thuần, ngăn nghìn bằng khoảng trắng (tránh nhầm thập phân) */
 function fmtResult(n) {
-  // nếu đã là int từ customRound thì không round lại sai
-  const v = Number.isInteger(Number(n)) ? Math.trunc(Number(n)) : customRound(n);
-  return new Intl.NumberFormat("vi-VN", {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0
-  }).format(v);
+  var v = customRound(n);
+  v = Math.trunc(v);
+  var s = String(Math.abs(v));
+  var out = "";
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) out += " ";
+    out += s.charAt(i);
+  }
+  return (v < 0 ? "-" : "") + out;
 }
 
 function saveHistory() {
@@ -349,9 +361,13 @@ function clearPhotoUI() {
   currentPhoto = null;
   resultPhoto = null;
   lastCalc = null;
+  ocrText = "";
+  ocrBusy = false;
   photoPreview.src = "";
   photoWrap.classList.remove("show");
   shareBtn.style.display = "none";
+  if (ocrStatus) ocrStatus.textContent = "";
+  if (ocrTextBox) { ocrTextBox.style.display = "none"; ocrTextBox.textContent = ""; }
 }
 
 function resetFormFull() {
@@ -402,8 +418,9 @@ function drawResultOnPhoto(photoDataUrl, calc) {
       ctx.fillStyle = "rgba(17,24,39,0.78)";
       ctx.fillRect(0, hh - barH, ww, barH);
 
-      // calc.r đã là số nguyên sau customRound
-      const resultText = fmtResult(calc.r) + " " + settings.unitOut;
+      // Ép số nguyên theo ngưỡng rồi mới vẽ
+      var intR = customRound(calc.r);
+      const resultText = fmtResult(intR) + " " + settings.unitOut;
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold " + Math.round(barH * 0.38) + "px system-ui,sans-serif";
       ctx.textBaseline = "top";
@@ -451,6 +468,56 @@ function dataURLtoBlob(dataUrl) {
   return new Blob([arr], { type: mime });
 }
 
+async function ensureOCRWorker() {
+  if (tesseractWorker) return tesseractWorker;
+  if (typeof Tesseract === "undefined") throw new Error("Thiếu thư viện Tesseract");
+  ocrStatus.textContent = "Đang tải OCR…";
+  tesseractWorker = await Tesseract.createWorker("vie+eng", 1, {
+    logger: function (m) {
+      if (m.status === "loading tesseract core") ocrStatus.textContent = "Tải core OCR…";
+      else if (m.status === "loading language traineddata") {
+        var p = m.progress != null ? Math.round(m.progress * 100) + "%" : "…";
+        ocrStatus.textContent = "Tải model chữ (" + p + ")";
+      } else if (m.status === "initializing api") ocrStatus.textContent = "Khởi tạo OCR…";
+      else if (m.status === "recognizing text" && m.progress != null) {
+        ocrStatus.textContent = "Đang nhận diện… " + Math.round(m.progress * 100) + "%";
+      }
+    }
+  });
+  await tesseractWorker.setParameters({
+    tessedit_pageseg_mode: "6",
+    preserve_interword_spaces: "1"
+  });
+  return tesseractWorker;
+}
+
+async function runOCR(dataUrl) {
+  if (ocrBusy) return;
+  ocrBusy = true;
+  ocrText = "";
+  ocrTextBox.style.display = "none";
+  ocrTextBox.textContent = "";
+  ocrStatus.textContent = "Đang nhận diện chữ…";
+  try {
+    var worker = await ensureOCRWorker();
+    var result = await worker.recognize(dataUrl);
+    ocrText = (result && result.data && result.data.text ? result.data.text : "").replace(/[ \t]+\n/g, "\n").trim();
+    if (ocrText) {
+      ocrStatus.textContent = "Đã nhận diện chữ";
+      ocrTextBox.textContent = ocrText;
+      ocrTextBox.style.display = "block";
+    } else {
+      ocrStatus.textContent = "Không thấy chữ trên ảnh";
+    }
+  } catch (err) {
+    ocrStatus.textContent = "OCR lỗi: " + (err && err.message ? err.message : "không tải được");
+    console.error("OCR", err);
+    ocrText = "";
+  } finally {
+    ocrBusy = false;
+  }
+}
+
 async function shareToZalo() {
   const imgData = resultPhoto || currentPhoto;
   if (!imgData) return;
@@ -461,7 +528,7 @@ async function shareToZalo() {
   // Chỉ gửi ảnh, không kèm text
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: "Tính khối lượng" });
+      await navigator.share({ files: [file] });
       shared = true;
     } catch (e) {
       if (e.name === "AbortError") return;
@@ -521,8 +588,10 @@ camCapture.addEventListener("click", function (e) {
   if (ww > maxW) { hh = Math.round(hh * maxW / ww); ww = maxW; }
   canvas.width = ww; canvas.height = hh;
   canvas.getContext("2d").drawImage(camVideo, 0, 0, ww, hh);
-  showPhoto(canvas.toDataURL("image/jpeg", 0.72), false);
+  var dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+  showPhoto(dataUrl, false);
   stopCamera();
+  runOCR(dataUrl);
 });
 
 fileInput.addEventListener("change", async function () {
@@ -530,7 +599,9 @@ fileInput.addEventListener("change", async function () {
   fileInput.value = "";
   if (!file) return;
   try {
-    showPhoto(await compressImage(file), false);
+    var dataUrl = await compressImage(file);
+    showPhoto(dataUrl, false);
+    runOCR(dataUrl);
   } catch {
     errorEl.textContent = "Không thể đọc ảnh.";
   }
@@ -587,13 +658,14 @@ form.addEventListener("submit", async function (e) {
     return;
   }
 
-  const rRaw = a[0] * a[1] * a[2] / settings.divisor;
-  const r = customRound(rRaw); // số nguyên theo ngưỡng
+  var rRaw = a[0] * a[1] * a[2] / settings.divisor;
+  var r = customRound(rRaw); // luôn int
+  r = Math.trunc(r);
 
   resultEl.textContent = fmtResult(r);
   lastCalc = { l: a[0], w: a[1], h: a[2], r: r };
 
-  const entry = { l: a[0], w: a[1], h: a[2], r: r };
+  var entry = { l: a[0], w: a[1], h: a[2], r: r };
 
   if (currentPhoto) {
     try {
