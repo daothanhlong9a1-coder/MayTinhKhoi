@@ -1,4 +1,4 @@
-const CACHE = "khoiluong-v3.6";
+const CACHE = "khoiluong-v3.7";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {

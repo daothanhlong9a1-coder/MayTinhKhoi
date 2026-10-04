@@ -5,15 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ mức chia">
-<meta name="app-version" content="3.6">
+<meta name="app-version" content="3.7">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tính khối lượng</title>
 <style>
 :root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--soft:#f9fafb;--danger:#dc2626}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-body{display:flex;justify-content:center;padding:12px 10px 28px}
-.app{width:min(100%,560px)}
+body{
+  display:flex;justify-content:center;
+  padding-top:max(12px, env(safe-area-inset-top));
+  padding-right:max(10px, env(safe-area-inset-right));
+  padding-bottom:max(20px, env(safe-area-inset-bottom));
+  padding-left:max(10px, env(safe-area-inset-left));
+}
+.app{width:min(100%,560px);max-width:100%}
 header{padding:6px 2px 14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 h1{font-size:24px;line-height:1.1;margin:0;letter-spacing:-.6px}header p{margin:5px 0 0;color:var(--muted);font-size:12px}
 .header-actions{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
@@ -98,21 +104,58 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 .viewer-bar{margin-top:14px}.viewer-close{background:#fff;color:#111;min-height:44px;padding:0 18px;border-radius:12px;border:0;font-weight:700;cursor:pointer}
 .viewer-info{color:#d1d5db;font-size:13px;margin-bottom:10px;text-align:center}
 
-/* Landscape: trái input+kết quả · phải nút · lịch sử dưới */
-@media (orientation: landscape) and (max-height: 520px) {
-  body{padding:8px}
-  .app{width:min(100%,920px)}
-  h1{font-size:18px}
-  header{padding-bottom:8px}
-  .work{display:grid;grid-template-columns:1.2fr 0.9fr;gap:12px;align-items:start}
-  .result-value{font-size:28px}
-  .photo-wrap img{max-height:160px}
-  input[type=number]{height:44px;font-size:18px}
-  .history{margin-top:10px}
-}
-@media (orientation: landscape) and (min-height: 521px) and (min-width: 700px) {
-  .app{width:min(100%,900px)}
-  .work{display:grid;grid-template-columns:1.15fr 0.85fr;gap:14px;align-items:start}
+/* Landscape — vừa màn hình, tránh notch / tai thỏ */
+@media (orientation: landscape) {
+  body{
+    padding-top:max(6px, env(safe-area-inset-top));
+    padding-right:max(12px, env(safe-area-inset-right));
+    padding-bottom:max(8px, env(safe-area-inset-bottom));
+    padding-left:max(12px, env(safe-area-inset-left));
+  }
+  .app{
+    width:100%;
+    max-width:100%;
+    max-height:100dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  h1{font-size:16px}
+  header{padding:2px 0 8px;align-items:center}
+  header p{margin:2px 0 0;font-size:11px}
+  .card{padding:10px;border-radius:14px}
+  .work{
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,0.85fr);
+    gap:10px;
+    align-items:start;
+  }
+  .dims{gap:6px}
+  input[type=number]{height:40px;font-size:16px;padding:0 30px 0 6px}
+  .unit{font-size:10px;right:6px}
+  .field label{font-size:11px;margin-bottom:3px}
+  .result{padding:10px}
+  .result-value{font-size:26px}
+  .result-title{font-size:10px}
+  .formula{margin-top:6px;padding:6px;font-size:10px}
+  .actions-stack{gap:6px}
+  .actions-stack button,.camera-btn{min-height:40px;font-size:13px;border-radius:10px}
+  .photo-wrap img{max-height:min(140px,28vh)}
+  .photo-actions button{min-height:34px;font-size:11px;padding:0 10px}
+  .history{margin-top:8px}
+  .history h2{font-size:13px}
+  .item{padding:6px 8px;font-size:11px}
+  .item-thumb{width:30px;height:30px}
+  .status,.footer{margin-top:6px;font-size:9px}
+  .settings-btn,.install{min-height:32px;padding:0 10px;font-size:11px}
+  .update-banner,.toast-banner{
+    padding-top:max(10px, env(safe-area-inset-top));
+    padding-left:max(12px, env(safe-area-inset-left));
+    padding-right:max(12px, env(safe-area-inset-right));
+  }
+  .cam-overlay{
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
 }
 </style>
 </head>
@@ -183,8 +226,8 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V3.6 · PWA</div>
-<div class="footer">Chạm lịch sử có ảnh để xem lớn</div>
+<div id="status" class="status">V3.7 · PWA</div>
+<div class="footer">Ứng dụng PWA được thiết kế bởi Long</div>
 </main>
 
 <input id="fileInput" type="file" accept="image/*" style="display:none">
@@ -254,7 +297,7 @@ input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "3.6";
+const APP_VERSION = "3.7";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
