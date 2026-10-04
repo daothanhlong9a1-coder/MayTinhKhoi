@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="Tính khối lượng theo Dài × Rộng × Cao ÷ mức chia">
-<meta name="app-version" content="3.3">
+<meta name="app-version" content="3.4">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tính khối lượng</title>
@@ -23,7 +23,13 @@ h1{font-size:28px;line-height:1.1;margin:0;letter-spacing:-.7px}header p{margin:
 .form{display:grid;gap:13px}.field label{display:flex;justify-content:space-between;margin-bottom:7px;font-size:14px;font-weight:700}.field label span{color:var(--muted);font-size:11px;font-weight:500}
 .input{position:relative}input{width:100%;height:56px;border:1px solid #d1d5db;border-radius:15px;padding:0 60px 0 15px;font-size:20px;font-weight:650;outline:0;background:#fff;color:var(--text)}
 input:focus{border-color:#6b7280;box-shadow:0 0 0 3px rgba(107,114,128,.13)}.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
-.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.actions-extra{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+.code-chips{margin-top:8px;display:none;flex-wrap:wrap;gap:6px;justify-content:center}
+.code-chips.show{display:flex}
+.code-chip{background:#111827;color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px;letter-spacing:.3px}
+.cam-flash{background:#374151;color:#fff;padding:0 14px;border-radius:24px !important;font-size:13px;min-width:auto !important;border-radius:24px !important}
+.cam-flash.on{background:#f59e0b;color:#111}
 button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .primary{background:var(--accent);color:#fff}.secondary{background:#f3f4f6;color:var(--text);border:1px solid var(--line)}
 .camera-btn{background:#f3f4f6;color:var(--text);border:1px solid var(--line);font-size:13px}
@@ -74,7 +80,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 .viewer-bar button{min-height:44px;padding:0 18px;border-radius:12px;border:0;font-weight:700;cursor:pointer}
 .viewer-close{background:#fff;color:#111}
 .viewer-info{color:#d1d5db;font-size:13px;margin-bottom:10px;text-align:center}
-@media(max-width:380px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}.actions{grid-template-columns:1fr 1fr}.actions .camera-btn{grid-column:1/-1}}
+@media(max-width:380px){h1{font-size:25px}.card{padding:15px}.result-value{font-size:33px}.actions{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -108,7 +114,10 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div class="actions">
   <button class="primary" type="submit" id="calcBtn">TÍNH</button>
   <button id="resetBtn" class="secondary" type="button">XÓA</button>
-  <button id="cameraBtn" class="camera-btn" type="button">📷 Ảnh</button>
+</div>
+<div class="actions-extra">
+  <button id="cameraBtn" class="camera-btn secondary" type="button">📷 Camera</button>
+  <button id="uploadBtn" class="camera-btn secondary" type="button">📁 Tải ảnh</button>
 </div>
 </form>
 
@@ -116,6 +125,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
   <img id="photoPreview" alt="Ảnh đã chụp">
   <div id="ocrStatus" class="ocr-status"></div>
   <div id="ocrTextBox" class="ocr-text"></div>
+  <div id="codeChips" class="code-chips"></div>
   <div class="photo-actions">
     <button id="photoRetake" class="secondary" type="button">Chụp lại</button>
     <button id="photoClear" class="secondary" type="button">Xóa ảnh</button>
@@ -138,17 +148,18 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <div id="list" class="list"></div>
 </section>
 
-<div id="status" class="status">V3.3 · PWA · OCR cloud</div>
+<div id="status" class="status">V3.4 · PWA · OCR + mã</div>
 <div class="footer">Chạm lịch sử có ảnh để xem lớn</div>
 </main>
 
-<input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none">
+<input id="fileInput" type="file" accept="image/*" style="display:none">
 
 <div id="camOverlay" class="cam-overlay">
   <video id="camVideo" class="cam-video" playsinline autoplay muted></video>
   <div class="cam-bar">
     <button id="camClose" class="cam-close" type="button">Đóng</button>
     <button id="camCapture" class="cam-capture" type="button" aria-label="Chụp"></button>
+    <button id="camFlash" class="cam-flash" type="button" style="display:none">Flash</button>
   </div>
 </div>
 
@@ -200,7 +211,7 @@ button{min-height:52px;border:0;border-radius:15px;font:inherit;font-weight:750;
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 const $ = id => document.getElementById(id);
 
 const form = $("form");
@@ -214,15 +225,16 @@ const setDivisor = $("setDivisor"), setUnitIn = $("setUnitIn");
 const setUnitOut = $("setUnitOut"), setThreshold = $("setThreshold"), setOcrKey = $("setOcrKey");
 const subtitle = $("subtitle"), formula = $("formula"), resultUnit = $("resultUnit");
 const unitL = $("unitL"), unitW = $("unitW"), unitH = $("unitH");
-const cameraBtn = $("cameraBtn"), fileInput = $("fileInput");
+const cameraBtn = $("cameraBtn"), uploadBtn = $("uploadBtn"), fileInput = $("fileInput");
 const photoWrap = $("photoWrap"), photoPreview = $("photoPreview");
 const photoRetake = $("photoRetake"), photoClear = $("photoClear"), shareBtn = $("shareBtn");
-const ocrStatus = $("ocrStatus"), ocrTextBox = $("ocrTextBox");
+const ocrStatus = $("ocrStatus"), ocrTextBox = $("ocrTextBox"), codeChips = $("codeChips");
 let ocrText = "";
 let ocrBusy = false;
 let tesseractWorker = null;
 const camOverlay = $("camOverlay"), camVideo = $("camVideo");
-const camCapture = $("camCapture"), camClose = $("camClose");
+const camCapture = $("camCapture"), camClose = $("camClose"), camFlash = $("camFlash");
+let flashOn = false;
 const updateBanner = $("updateBanner"), updateNowBtn = $("updateNowBtn");
 const successBanner = $("successBanner"), successCloseBtn = $("successCloseBtn");
 const imgViewer = $("imgViewer"), viewerImg = $("viewerImg"), viewerInfo = $("viewerInfo"), viewerClose = $("viewerClose");
@@ -374,6 +386,7 @@ function clearPhotoUI() {
   shareBtn.style.display = "none";
   if (ocrStatus) ocrStatus.textContent = "";
   if (ocrTextBox) { ocrTextBox.style.display = "none"; ocrTextBox.textContent = ""; }
+  if (codeChips) { codeChips.innerHTML = ""; codeChips.classList.remove("show"); }
 }
 
 function resetFormFull() {
@@ -497,6 +510,44 @@ async function ensureOCRWorker() {
   return tesseractWorker;
 }
 
+
+/** Lọc mã dạng XXXX-N (4 chữ cái Latin + "-" + số 1..9999) */
+function filterCodes(raw) {
+  if (!raw) return [];
+  var normalized = String(raw).replace(/([A-Za-z]{4})\s*[-–—]\s*(\d{1,4})/g, "$1-$2");
+  var re = /\b([A-Za-z]{4})-(\d{1,4})\b/g;
+  var found = [];
+  var m;
+  while ((m = re.exec(normalized)) !== null) {
+    var n = parseInt(m[2], 10);
+    if (n >= 1 && n <= 9999) {
+      found.push(m[1].toUpperCase() + "-" + n);
+    }
+  }
+  // unique
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < found.length; i++) {
+    if (!seen[found[i]]) { seen[found[i]] = 1; out.push(found[i]); }
+  }
+  return out;
+}
+
+function renderCodeChips(codes) {
+  codeChips.innerHTML = "";
+  if (!codes.length) {
+    codeChips.classList.remove("show");
+    return;
+  }
+  codes.forEach(function (c) {
+    var span = document.createElement("span");
+    span.className = "code-chip";
+    span.textContent = c;
+    codeChips.appendChild(span);
+  });
+  codeChips.classList.add("show");
+}
+
 async function ocrCloud(dataUrl) {
   var key = (settings.ocrKey || "").trim();
   if (!key || !navigator.onLine) return null;
@@ -557,17 +608,20 @@ async function runOCR(dataUrl) {
       source = "local";
     }
     ocrText = text || "";
+    var codes = filterCodes(ocrText);
     if (ocrText) {
-      ocrStatus.textContent = "Đã nhận diện (" + source + ")";
+      ocrStatus.textContent = "Đã nhận diện (" + source + ")" + (codes.length ? " · " + codes.length + " mã" : "");
       ocrTextBox.textContent = ocrText;
       ocrTextBox.style.display = "block";
     } else {
       ocrStatus.textContent = "Không thấy chữ trên ảnh";
     }
+    renderCodeChips(codes);
   } catch (err) {
     ocrStatus.textContent = "OCR lỗi: " + (err && err.message ? err.message : "không tải được");
     console.error("OCR", err);
     ocrText = "";
+    renderCodeChips([]);
   } finally {
     ocrBusy = false;
   }
@@ -601,15 +655,58 @@ async function shareToZalo() {
 }
 
 function stopCamera() {
+  flashOn = false;
   if (camStream) {
+    try {
+      var tr = camStream.getVideoTracks()[0];
+      if (tr) tr.applyConstraints({ advanced: [{ torch: false }] }).catch(function () {});
+    } catch (_) {}
     camStream.getTracks().forEach(function (t) { t.stop(); });
     camStream = null;
   }
   camVideo.srcObject = null;
   camOverlay.classList.remove("open");
+  if (camFlash) {
+    camFlash.style.display = "none";
+    camFlash.classList.remove("on");
+    camFlash.textContent = "Flash";
+  }
+}
+
+function updateFlashButton() {
+  if (!camStream) {
+    camFlash.style.display = "none";
+    flashOn = false;
+    return;
+  }
+  var track = camStream.getVideoTracks()[0];
+  if (!track) { camFlash.style.display = "none"; return; }
+  var caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (caps.torch) {
+    camFlash.style.display = "inline-block";
+    camFlash.classList.toggle("on", flashOn);
+    camFlash.textContent = flashOn ? "Flash ON" : "Flash";
+  } else {
+    camFlash.style.display = "none";
+  }
+}
+
+async function setTorch(on) {
+  if (!camStream) return;
+  var track = camStream.getVideoTracks()[0];
+  if (!track) return;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: !!on }] });
+    flashOn = !!on;
+  } catch (e) {
+    console.warn("torch", e);
+    flashOn = false;
+  }
+  updateFlashButton();
 }
 
 async function openLiveCamera() {
+  flashOn = false;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     fileInput.click();
     return;
@@ -621,12 +718,14 @@ async function openLiveCamera() {
     });
     camVideo.srcObject = camStream;
     camOverlay.classList.add("open");
+    updateFlashButton();
   } catch {
     fileInput.click();
   }
 }
 
 cameraBtn.addEventListener("click", function (e) { e.preventDefault(); openLiveCamera(); });
+uploadBtn.addEventListener("click", function (e) { e.preventDefault(); fileInput.click(); });
 photoRetake.addEventListener("click", function (e) { e.preventDefault(); openLiveCamera(); });
 photoClear.addEventListener("click", function (e) { e.preventDefault(); clearPhotoUI(); });
 shareBtn.addEventListener("click", function (e) { e.preventDefault(); shareToZalo(); });
@@ -634,6 +733,10 @@ viewerClose.addEventListener("click", function (e) { e.preventDefault(); closeVi
 imgViewer.addEventListener("click", function (e) { if (e.target === imgViewer) closeViewer(); });
 
 camClose.addEventListener("click", function (e) { e.preventDefault(); stopCamera(); });
+camFlash.addEventListener("click", function (e) {
+  e.preventDefault();
+  setTorch(!flashOn);
+});
 camCapture.addEventListener("click", function (e) {
   e.preventDefault();
   if (!camVideo.videoWidth) return;
